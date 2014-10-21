@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration scan="false" scanPeriod="60 seconds" debug="false">
+	<contextName>SpiderCenter</contextName>
+    <property name="LOG_HOME" value="/opt/apache-tomcat-7.0.54/logs" />  
+    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder"> 
+            <pattern>%d{yyyy-MM-dd HH:mm:ss} %-5level %logger{50} - %msg%n</pattern>   
+        </encoder>
+    </appender>
+    <appender name="CLAWER_LOG" class="ch.qos.logback.core.rolling.RollingFileAppender">   
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <FileNamePattern>${LOG_HOME}/Clawer.%d{yyyy-MM-dd}.log</FileNamePattern> 
+            <MaxHistory>10</MaxHistory>
+        </rollingPolicy>
+        <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder"> 
+            <pattern>%d{yyyy-MM-dd HH:mm:ss} %-5level%logger{50} - %msg%n</pattern>   
+        </encoder> 
+    </appender>
+	<appender name="PROXY_LOG" class="ch.qos.logback.core.rolling.RollingFileAppender">   
+	    <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+	        <FileNamePattern>${LOG_HOME}/Proxy.%d{yyyy-MM-dd}.log</FileNamePattern> 
+	        <MaxHistory>10</MaxHistory>
+	    </rollingPolicy>
+	    <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder"> 
+	        <pattern>%d{yyyy-MM-dd HH:mm:ss} %-5level%logger{50} - %msg%n</pattern>   
+	    </encoder> 
+	</appender>
+    <logger name="ClawerLogger" level="INFO" additivity="false">
+    	<appender-ref ref="STDOUT" />
+    	<appender-ref ref="STDOUT" />
+    </logger>
+    <logger name="ProxyLogger" level="INFO" additivity="false">
+    	<appender-ref ref="STDOUT" />
+    </logger>
+    <root level="INFO">
+        <appender-ref ref="STDOUT" />
+    </root> 
+</configuration>
