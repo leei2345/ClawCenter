@@ -97,6 +97,8 @@ public class HouseHandle extends BaseHandler {
 				e.printStackTrace();
 			} catch (InvocationTargetException e) {
 				e.printStackTrace();
+			} catch (Exception e) {
+				e.printStackTrace();
 			}
 		}
 		try {

@@ -29,7 +29,7 @@ public class ProxyCleanner extends BaseClawer {
 
 	@SuppressWarnings("unchecked")
 	protected String GetHtml() {
-		String sql = "select id FROM tb_proxy WHERE avail !=0 AND unavail!=0 AND  unavail/avail  > " + threshold;
+		String sql = "select * FROM tb_proxy WHERE (avail =0  AND unavail-avail > 5) OR (avail!=0 AND unavail!=0 AND  unavail/avail  > " + threshold + ")";
 		DBDataReader reader = new DBDataReader(sql);
 		List<Map<String, Object>> list = reader.readAll();
 		this.cleanProxyCount = list.size();
@@ -39,7 +39,7 @@ public class ProxyCleanner extends BaseClawer {
 	}
 
 	protected Map<Analyst, Object> Analysis(String html) {
-		String sql = "DELETE FROM tb_proxy WHERE avail !=0 AND unavail!=0 AND  unavail/avail  > :threshold";
+		String sql = "delete FROM tb_proxy WHERE (avail =0  AND unavail-avail > 5) OR (avail!=0 AND unavail!=0 AND  unavail/avail  > " + threshold + ")";
 		Map<String, Float> map = new HashMap<String, Float> ();
 		map.put("threshold", Float.valueOf(threshold));
 		DBDataWriter writer = new DBDataWriter(sql);

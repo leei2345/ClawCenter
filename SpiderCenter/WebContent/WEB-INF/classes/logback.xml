@@ -26,11 +26,11 @@
 	    </encoder> 
 	</appender>
     <logger name="ClawerLogger" level="INFO" additivity="false">
-    	<appender-ref ref="STDOUT" />
-    	<appender-ref ref="STDOUT" />
+    	<appender-ref ref="CLAWER_LOG" />
+    	<appender-ref ref="PROXY_LOG" />
     </logger>
     <logger name="ProxyLogger" level="INFO" additivity="false">
-    	<appender-ref ref="STDOUT" />
+    	<appender-ref ref="PROXY_LOG" />
     </logger>
     <root level="INFO">
         <appender-ref ref="STDOUT" />

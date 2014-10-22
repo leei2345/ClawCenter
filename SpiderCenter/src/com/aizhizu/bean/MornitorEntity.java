@@ -34,7 +34,10 @@ public class MornitorEntity {
 	}
 
 	public long getUsedTime() {
-		long usedTime = this.usedTime.get();
+		long usedTime = 0;
+		if (this.usedTime != null ) {
+			usedTime = this.usedTime.get();
+		}
 		return usedTime;
 	}
 

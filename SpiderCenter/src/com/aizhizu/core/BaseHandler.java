@@ -35,6 +35,7 @@ public abstract class BaseHandler implements Runnable {
 			StartHandle();
 		} catch (Exception e) {
 			e.printStackTrace();
+			logger.warn("[Handle error][" + e.getMessage() + "]");
 		}
 		/** 修改数据库状态为休息中 */
 		ChangeScheduledStatus(0);

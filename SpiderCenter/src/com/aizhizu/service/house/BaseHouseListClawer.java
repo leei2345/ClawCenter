@@ -73,7 +73,6 @@ public abstract class BaseHouseListClawer extends BaseClawer {
 			writer.flush();
 		} catch (IOException e1) {
 			e1.printStackTrace();
-
 			if (writer != null)
 				try {
 					writer.close();
@@ -131,12 +130,14 @@ public abstract class BaseHouseListClawer extends BaseClawer {
 		}
 		try {
 			cdl.await();
+			mornitor.MakeDB();
 		} catch (InterruptedException e) {
 			e.printStackTrace();
+		} catch (Exception e) {
+			e.printStackTrace();
+		} finally {
 			this.listcdl.countDown();
 		}
-		mornitor.MakeDB();
-		this.listcdl.countDown();
 	}
 
 	private boolean DealWithChuzuData(BaseHouseEntity house) {
