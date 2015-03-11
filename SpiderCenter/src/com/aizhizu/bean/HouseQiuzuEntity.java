@@ -3,7 +3,7 @@ package com.aizhizu.bean;
 
 public class HouseQiuzuEntity extends BaseHouseEntity {
 	private static final long serialVersionUID = 6829971935795223724L;
-	private String phone;
+	private String phone = "";
 	private String phoneImageUrl;
 	private String landlord = "房东";
 	private int gender = 1;
@@ -17,11 +17,7 @@ public class HouseQiuzuEntity extends BaseHouseEntity {
 	private String x;
 	private String y;
 	private String format;
-	private String floor;
-	private String face;
-	private String acreage = "0";
-
-	private String word = "房东个人直租，欢迎随时看房";
+	private String word = "期望遇到好房东，我会尽快入住";
 
 	public String getPhone() {
 		return this.phone;
@@ -135,32 +131,8 @@ public class HouseQiuzuEntity extends BaseHouseEntity {
 		this.format = format;
 	}
 
-	public String getFloor() {
-		return this.floor;
-	}
-
-	public void setFloor(String floor) {
-		this.floor = floor;
-	}
-
-	public String getFace() {
-		return this.face;
-	}
-
-	public void setFace(String face) {
-		this.face = face;
-	}
-
-	public String getAcreage() {
-		return this.acreage;
-	}
-
-	public void setAcreage(String acreage) {
-		this.acreage = acreage;
-	}
-
 	public String getWord() {
-		return this.word;
+		return this.word = "\"" + word  + "\"";
 	}
 
 	public void setWord(String word) {
@@ -168,7 +140,12 @@ public class HouseQiuzuEntity extends BaseHouseEntity {
 	}
 
 	public String toString() {
-		String returnStr = "";
+		String returnStr = getNum() + "," + getUrl() + "," + getPhone() + ","
+				+ getPhoneImageUrl() + "," + getLandlord() + "," + getGender()
+				+ ",\"" + getTitle() + "\"," + getRentalType() + ","
+				+ getPrice() + "," + getCity() + ",\"" + getDistrict() + "\","
+				+ getArea() + "," + getCircle() + ",\"" + getX() + ";" + getY()
+				+ "\",'" + getFormat() + "," + getWord();
 		return returnStr;
 	}
 }

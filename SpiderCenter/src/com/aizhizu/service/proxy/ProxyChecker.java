@@ -63,7 +63,7 @@ public class ProxyChecker {
 			this.threadPool.execute(proxyChecker);
 		}
 		try {
-			cdl.await();
+			cdl.await(3000000);
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 		}
@@ -74,7 +74,7 @@ public class ProxyChecker {
 
 	@SuppressWarnings("unchecked")
 	private ConcurrentLinkedQueue<String> GetTaskList() {
-		String sql = "select host,port from tb_proxy order by update_time limit 300";
+		String sql = "select host,port from tb_proxy order by update_time limit 1000";
 		DBDataReader reader = new DBDataReader(sql);
 		List<Map<String, Object>> dbList = reader.readAll();
 		ConcurrentLinkedQueue<String> taskList = new ConcurrentLinkedQueue<String>();
@@ -95,7 +95,7 @@ public class ProxyChecker {
 		for (Map<String, Object> map : resList) {
 			String column_name = (String) map.get("column_name");
 			String innerSql = "select host,port from tb_proxy where "
-					+ column_name + "=1 limit 20";
+					+ column_name + "=1 limit 200";
 			DBDataReader innerReader = new DBDataReader(innerSql);
 			List<Map<String, Object>> innerResList = innerReader.readList();
 			List<HttpHost> proxyList = proxyMap.get(column_name);

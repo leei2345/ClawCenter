@@ -3,12 +3,22 @@ package com.aizhizu.service;
 import com.aizhizu.bean.MornitorEntity;
 import com.aizhizu.bean.MornitorEntity.ProgressEntity;
 import com.aizhizu.dao.Redis;
+import com.aizhizu.http.HttpMethod;
+import com.aizhizu.http.Method;
 import com.aizhizu.util.CountDownLatchUtils;
+import com.alibaba.fastjson.JSONException;
+
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Vector;
+
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.StopWatch;
 import org.apache.http.message.BasicHeader;
 import org.slf4j.Logger;
@@ -20,6 +30,7 @@ import org.slf4j.LoggerFactory;
  *
  */
 public abstract class BaseClawer implements Runnable {
+//	private static String imageTempFilePath = "/";
 	protected static Logger clawerLogger = LoggerFactory.getLogger("ClawerLogger");
 	/** 计数器 */
 	protected CountDownLatchUtils cdl = new CountDownLatchUtils(1);
@@ -80,9 +91,16 @@ public abstract class BaseClawer implements Runnable {
 			watch.start();
 			init();
 			html = GetHtml();
+			if (StringUtils.equals("web_ganji", identidy)) {
+				watch.split();
+				long httpTime = watch.getSplitTime();
+				clawerLogger.info("[" + identidy + "][页面抓取耗时][" + httpTime + "毫秒]");
+				watch.unsplit();
+			}
 			this.analystResult = Analysis(html);
 			watch.split();
 			long usedTime = watch.getSplitTime();
+			
 			watch.stop();
 			String info = (String) this.analystResult.get(Analyst.Info);
 			if (info.contains("succ")) {
@@ -113,6 +131,11 @@ public abstract class BaseClawer implements Runnable {
 				this.box.add("work");
 			}
 			clawerLogger.info("[" + Progress() + "][" + info + "][" + this.identidy + "][" + (String) this.box.get(0) + "]");
+		} catch (JSONException je) {
+			je.printStackTrace();
+			this.cdl.countDown();
+			result = false;
+			clawerLogger.info("[" + Progress() + "][fail][" + this.identidy + "][" + (String) this.box.get(0) + "]");
 		} catch (Exception e) {
 			e.printStackTrace();
 			this.cdl.countDown();
@@ -150,6 +173,47 @@ public abstract class BaseClawer implements Runnable {
 		return headers;
 	}
 
+	public File GetImageFile (String identidy, String url) {
+		String tempName = DigSign.getMD5(url, "UTF-8");
+		HttpMethod me = new HttpMethod(identidy);
+		me.AddHeader(Method.Get, "User-Agent", "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:32.0) Gecko/20100101 Firefox/32.0");
+		me.AddHeader(Method.Get, "Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8");
+		me.AddHeader(Method.Get, "Accept-Language", "zh-cn,zh;q=0.8,en-us;q=0.5,en;q=0.3");
+		me.AddHeader(Method.Get, "Accept-Encoding", "gzip, deflate");
+		byte[][] imageByteArr = me.GetImageByteArr(url);
+		if (imageByteArr == null) {
+			return  null;
+		}
+		String imageType = new String(imageByteArr[1]);
+		if (StringUtils.isBlank(imageType)) {
+			return  null;
+		}
+		byte[] imageData = imageByteArr[0];
+		File imageFile = new File(tempName + "." + imageType);
+		FileOutputStream fileStream = null;
+		try {
+			imageFile.createNewFile();
+			fileStream = new FileOutputStream(imageFile);
+			fileStream.write(imageData);
+			fileStream.flush();
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		} finally {
+			if (fileStream != null) {
+				try {
+					fileStream.close();
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			}
+		}
+		return imageFile;
+	}
+	
+	
+	
 	public static void main(String[] args) {
 		BigDecimal succBig = new BigDecimal(100);
 		BigDecimal holeBig = new BigDecimal(10002);

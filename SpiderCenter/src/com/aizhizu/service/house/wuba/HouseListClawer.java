@@ -68,6 +68,10 @@ public class HouseListClawer extends BaseHouseListClawer {
 				String houseUrl = houseNode
 						.select("td[class=t qj-rentd] > h1 > a.t").attr("href")
 						.trim();
+				String checkNodeStr = houseNode.select("td[class=t qj-rentd] > p.qj-rendp > span:eq(1)").text();
+				if (checkNodeStr.contains("认证师")) {
+					continue;
+				}
 				if (zhidingNode.size() != 0) {
 					HttpMethod innerMe = new HttpMethod("web_wuba");
 					String localUrl = innerMe.GetLocationUrl(houseUrl);
@@ -83,7 +87,9 @@ public class HouseListClawer extends BaseHouseListClawer {
 					}
 
 				} else if (!redis.hasNewsUrl(houseUrl)) {
-					this.taskList.offer(houseUrl);
+					if (!taskList.contains(houseUrl)) {
+						this.taskList.offer(houseUrl);
+					}
 				}
 			}
 			clawerLogger.info("[" + identidy + "][list][page " + this.pageIndex

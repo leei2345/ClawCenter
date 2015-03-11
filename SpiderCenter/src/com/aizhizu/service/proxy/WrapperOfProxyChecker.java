@@ -66,8 +66,7 @@ public class WrapperOfProxyChecker extends BaseClawer {
 		for (File file : wrapperArr) {
 			String wrapperName = file.getName().replace(".class", "");
 			try {
-				Class clazz = loader.loadClass(packageName + ".wrapper."
-						+ wrapperName);
+				Class clazz = loader.loadClass(packageName + ".wrapper." + wrapperName);
 				BaseProxyChecker proxyChecker = (BaseProxyChecker) clazz
 						.newInstance();
 				proxyChecker.InstallProxyHost(this.host);

@@ -1,5 +1,10 @@
 package com.aizhizu.bean;
 
+import java.net.URLEncoder;
+import java.util.Set;
+
+import org.apache.commons.lang3.StringUtils;
+
 /**
  *  房源租赁实体 
  * @author leei
@@ -14,6 +19,7 @@ public class HouseChuzuEntity extends BaseHouseEntity {
 	private String landlord = "房东";
 	private int gender = 1;
 	private String title;
+	/** 1代表整租，2代表转租 3代表主卧出租  4 代表次卧出租 */
 	private int rentalType;
 	private String price;
 	private String city = "北京";
@@ -27,7 +33,16 @@ public class HouseChuzuEntity extends BaseHouseEntity {
 	private String floor;
 	private String face;
 	private String acreage = "0";
-	private String word = "\"房东个人直租，欢迎随时看房\"";
+	private String word = "房东个人直租，欢迎随时看房";
+	private String lineName = "null";
+
+	public String getLineName() {
+		return lineName;
+	}
+
+	public void setLineName(String lineName) {
+		this.lineName = lineName;
+	}
 
 	public String getPhone() {
 		return this.phone;
@@ -40,6 +55,15 @@ public class HouseChuzuEntity extends BaseHouseEntity {
 	public String getPhoneImageUrl() {
 		return this.phoneImageUrl;
 	}
+	
+	public String getEncodePhoneImageUrl() {
+		try {
+			this.phoneImageUrl = URLEncoder.encode(this.phoneImageUrl, "UTF-8");
+		} catch (Exception e) {
+			return "";
+		}
+		return this.phoneImageUrl;
+	}
 
 	public void setPhoneImageUrl(String phoneImageUrl) {
 		this.phoneImageUrl = phoneImageUrl;
@@ -50,7 +74,9 @@ public class HouseChuzuEntity extends BaseHouseEntity {
 	}
 
 	public void setLandlord(String landlord) {
-		this.landlord = landlord;
+		if (!StringUtils.isBlank(landlord)) {
+			this.landlord = landlord;
+		}
 	}
 
 	public int getGender() {
@@ -150,6 +176,7 @@ public class HouseChuzuEntity extends BaseHouseEntity {
 	}
 
 	public String getFace() {
+		this.face = face.replace("&nbsp;", "").replace(" ", "").replace("　", "");
 		return this.face;
 	}
 
@@ -162,11 +189,14 @@ public class HouseChuzuEntity extends BaseHouseEntity {
 	}
 
 	public void setAcreage(String acreage) {
-		this.acreage = acreage;
+		if (!StringUtils.isBlank(acreage)) {
+			this.acreage = acreage;
+		}
 	}
 
 	public String getWord() {
-		return this.word;
+		word = word.replace("&nbsp;", "").replace(" ", "").replace("　", "");
+		return word;
 	}
 
 	public void setWord(String word) {
@@ -174,13 +204,18 @@ public class HouseChuzuEntity extends BaseHouseEntity {
 	}
 
 	public String toString() {
+		String imageUrl = "";
+		Set<String> imageUrlList = getImageUrlList();
+		for (String url : imageUrlList) {
+			imageUrl += url + ";";
+		}
 		String returnStr = getNum() + "," + getUrl() + "," + getPhone() + ","
 				+ getPhoneImageUrl() + "," + getLandlord() + "," + getGender()
 				+ ",\"" + getTitle() + "\"," + getRentalType() + ","
-				+ getPrice() + "," + getCity() + "," + getDistrict() + ","
+				+ getPrice() + "," + getCity() + ",\"" + getDistrict() + "\","
 				+ getArea() + "," + getCircle() + ",\"" + getX() + ";" + getY()
-				+ "\"," + getFormat() + "," + getFloor() + "," + getFace()
-				+ "," + getAcreage() + "," + getWord();
+				+ "\",'" + getFormat() + ",'" + getFloor() + "," + getFace()
+				+ "," + getAcreage() + ",\"" + getWord() + "\",\"" + imageUrl + "\"";
 		return returnStr;
 	}
 }

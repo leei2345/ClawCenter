@@ -73,8 +73,15 @@ public class HouseHandle extends BaseHandler {
 		}
 		int houseWrapperFileListSize = houseWrapperFileList.size();
 		CountDownLatchUtils listCdl = new CountDownLatchUtils(houseWrapperFileListSize);
+		List<String> list = new ArrayList<String>();
+		list.add("ganji");
+		list.add("wuba");
 		for (File file : houseWrapperFileList) {
 			String dirName = file.getName();
+			if (list.contains(dirName)) {
+				System.out.println(dirName);
+				continue;
+			}
 			try {
 				Class clazz = loader.loadClass(packageName + "." + dirName + ".HouseListClawer");
 				Class[] parameterTypes = { String.class, CountDownLatchUtils.class };

@@ -5,13 +5,16 @@ import com.aizhizu.http.HttpMethod;
 import com.aizhizu.http.HttpResponseConfig;
 import com.aizhizu.service.Analyst;
 import com.aizhizu.service.BaseClawer;
+import com.aizhizu.service.house.PlotDataMatcher;
 import com.aizhizu.service.house.UnmatchHouseDataStorer;
 import com.aizhizu.util.CountDownLatchUtils;
+
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.Vector;
+
 import org.apache.commons.lang3.StringUtils;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -49,15 +52,13 @@ public class HouseDetailClawer extends BaseClawer {
 		Document doc = Jsoup.parse(html);
 		HouseChuzuEntity house = new HouseChuzuEntity();
 		house.setUrl(this.url);
-		Elements phoneNodes = doc
-				.select("p[class=phoneBg  mt10] > span#agtphone > span.telno0");
+		Elements phoneNodes = doc.select("p[class=phoneBg  mt10] > span#agtphone > span.telno0");
 		String phoneNum = "";
 		if (phoneNodes.size() > 0) {
 			phoneNum = phoneNodes.first().ownText().trim();
 		}
 		house.setPhone(phoneNum.replaceAll("\\s+", ""));
-		String landlord = doc.select("p[class=phoneBg  mt10] > span#Span2")
-				.text().trim();
+		String landlord = doc.select("p[class=phoneBg  mt10] > span#Span2").text().trim();
 		int gender = 1;
 		if (!landlord.contains("先生")) {
 			gender = 0;
@@ -87,14 +88,10 @@ public class HouseDetailClawer extends BaseClawer {
 			rentalType = 4;
 		}
 		house.setRentalType(rentalType);
-		String price = doc
-				.select("div[class=info floatr] > ul > li > span[class=num green]")
-				.text().trim();
+		String price = doc.select("div[class=info floatr] > ul > li > span[class=num red]").text().trim();
 		price = price.replaceAll("\\D+", "");
 		house.setPrice(price);
-		String plot = doc
-				.select("ul[class=Huxing floatl] > li > p:contains(小 区) ~ p.info")
-				.text().trim();
+		String plot = doc.select("ul[class=Huxing floatl] > li > p:contains(小 区) ~ p.info").text().trim();
 		String plotData = "";
 		if (!StringUtils.isBlank(plot)) {
 			plotData = redis.getPlotData(plot);
@@ -103,10 +100,18 @@ public class HouseDetailClawer extends BaseClawer {
 			this.analystResult.put(Analyst.FailCount, Integer.valueOf(1));
 			return this.analystResult;
 		}
+		if (StringUtils.isBlank(plotData)) {
+			String matchePlot = PlotDataMatcher.matchPlot(plot);
+			if (!StringUtils.isBlank(matchePlot)) {
+				plotData = redis.getPlotData(matchePlot);
+			}
+		}
+		
 		String x = "";
 		String y = "";
 		String area = "";
 		String circle = "";
+		boolean push = false;
 		if (StringUtils.isBlank(plotData)) {
 			Elements areaNodes = doc
 					.select("div[class=info floatr] > ul > li > span:contains(小区)");
@@ -125,6 +130,7 @@ public class HouseDetailClawer extends BaseClawer {
 			UnmatchHouseDataStorer storer = new UnmatchHouseDataStorer(storerMap);
 			new Thread(storer).start();
 		} else {
+			push = true;
 			String[] plotDataArr = plotData.split("\\|");
 			area = plotDataArr[0];
 			circle = plotDataArr[1];
@@ -137,6 +143,8 @@ public class HouseDetailClawer extends BaseClawer {
 		house.setY(y);
 		house.setArea(area);
 		house.setCircle(circle);
+		house.setPush(push);
+		
 		String format = doc
 				.select("ul[class=Huxing floatl] > li > p:contains(户 型) ~ p.info")
 				.text().trim();
@@ -155,7 +163,7 @@ public class HouseDetailClawer extends BaseClawer {
 				.select("ul[class=Huxing floatl] > li > p:contains(朝 向) ~ p.info")
 				.text().trim();
 		house.setFace(face);
-		String word = doc.select("div[class=Introduce floatr] > p").text()
+		String word = doc.select("div[class=Introduce floatr] > p:not(:contains(搜房网上看到的))").text()
 				.trim();
 		word = word.replaceAll("\n", "").replaceAll("\r", "")
 				.replace("&nbsp;", "");
@@ -174,6 +182,7 @@ public class HouseDetailClawer extends BaseClawer {
 			}
 			house.setImageUrlList(imageUrlList);
 		}
+		house.setLineName("soufang");
 		this.analystResult.put(Analyst.Info, "succ");
 		this.analystResult.put(Analyst.SuccCount, Integer.valueOf(1));
 		this.analystResult.put(Analyst.Entity, house);
@@ -183,7 +192,7 @@ public class HouseDetailClawer extends BaseClawer {
 	public static void main(String[] args) {
 		BaseClawer b = new HouseDetailClawer(new CountDownLatchUtils(1));
 		Vector<String> v = new Vector<String>();
-		v.add("http://zu.fang.com/chuzu/1_58736337_-1.htm");
+		v.add("http://zu.fang.com/chuzu/1_58843318_-1.htm");
 		b.setBox(v);
 		b.Implement();
 	}

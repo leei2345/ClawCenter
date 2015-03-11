@@ -73,8 +73,7 @@ public class HouseListClawer extends BaseHouseListClawer {
 	}
 
 	public static void main(String[] args) {
-		BaseHouseListClawer b = new HouseListClawer("/home/leei/2014100801/",
-				new CountDownLatchUtils(1));
+		BaseHouseListClawer b = new HouseListClawer("/home/leei/2014100801/", new CountDownLatchUtils(1));
 		new Thread(b).start();
 	}
 }

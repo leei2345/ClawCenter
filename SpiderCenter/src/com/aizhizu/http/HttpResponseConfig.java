@@ -6,8 +6,7 @@ package com.aizhizu.http;
  *
  */
 public enum HttpResponseConfig {
-	ResponseAsString("ResponseAsString", false), ResponseAsStream(
-			"ResponseAsStream", true);
+	ResponseAsString("ResponseAsString", false), ResponseAsStream("ResponseAsStream", true);
 
 	private String Config;
 	private boolean YesOrNo;

@@ -8,7 +8,8 @@ package com.aizhizu.http;
 public enum HttpRequestConfig
 {
   RequestBodyAsString("RequestBodyAsString", true), 
-  RequestBodyAsStream("RequestBodyAsStream", false);
+  RequestBodyAsStream("RequestBodyAsStream", false),
+  RequestBodyContainFile("RequestBodyContainFile", false);
 
   private String Config;
   private boolean YesOrNo;

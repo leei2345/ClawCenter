@@ -1,12 +1,15 @@
 package com.aizhizu.service.house;
 
 import com.aizhizu.http.HttpMethod;
+
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.HashSet;
 import java.util.Set;
+
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -20,8 +23,7 @@ public class ImageDownLoader implements Runnable {
 	private String filePath;
 	private String sourceUrl;
 	private Set<String> imageUrlList = new HashSet<String>();
-	private static final Logger logger = LoggerFactory
-			.getLogger("ClawerLogger");
+	private static final Logger logger = LoggerFactory.getLogger("ClawerLogger");
 
 	public Set<String> getImageUrlList() {
 		return this.imageUrlList;
@@ -46,15 +48,17 @@ public class ImageDownLoader implements Runnable {
 			if (imageArr == null) {
 				continue;
 			}
-			String imageLastName = new String(imageArr[1]);
-			File wrapperImageFile = new File(this.filePath);
-			if (!wrapperImageFile.exists()) {
-				wrapperImageFile.mkdir();
-			}
-			String imageFilePathName = wrapperImageFile.getAbsolutePath() + "/"
-					+ imageIndex + "." + imageLastName;
 			FileOutputStream imageOut = null;
 			try {
+				String imageLastName = new String(imageArr[1]);
+				if (StringUtils.equals("txt", imageLastName)) {
+					continue;
+				}
+				File wrapperImageFile = new File(this.filePath);
+				if (!wrapperImageFile.exists()) {
+					wrapperImageFile.mkdir();
+				}
+				String imageFilePathName = wrapperImageFile.getAbsolutePath() + "/" + imageIndex + "." + imageLastName;
 				imageOut = new FileOutputStream(new File(imageFilePathName));
 				imageOut.write(imageArr[0]);
 				imageOut.flush();
@@ -62,6 +66,8 @@ public class ImageDownLoader implements Runnable {
 			} catch (FileNotFoundException e) {
 				e.printStackTrace();
 			} catch (IOException e) {
+				e.printStackTrace();
+			} catch (Exception e) {
 				e.printStackTrace();
 			} finally {
 				if (imageOut != null) {

@@ -1,3 +1,5 @@
+<%@page import="com.aizhizu.service.house.ganji.UserCenter"%>
+<%@page import="com.aizhizu.service.house.ganji.InitHttpClient"%>
 <%@ page language="java" import="java.util.*" contentType="text/html;charset=UTF-8" pageEncoding="UTF-8" isELIgnored="false"%>
 <html>
 
@@ -169,7 +171,7 @@
 </head>
 <style>
 		/* 设置边框 */
-		table, th, td{
+		th, td{
 		    border: 1px solid blue;
 		}
 		/* 设置table位置 */
@@ -184,7 +186,7 @@
 </style>
 
 <body>
-	<div align="center"><a id='beforeDay' href=''>查看前一天</a>|<a id='afterDay' href=''>查看后一天</a>|<a href="index.jsp">返回主页</a></div>
+	<div align="center"><a id='beforeDay' href=''>查看前一天</a>|<a id='afterDay' href=''>查看后一天</a>|<a href="index.jsp">返回主页</a>|<a href="user_stat.jsp">查看用户状态</a></div>
 	<table  border="1" id="schedu">
 	</table>
 	<table  border="1" id="mornitor">

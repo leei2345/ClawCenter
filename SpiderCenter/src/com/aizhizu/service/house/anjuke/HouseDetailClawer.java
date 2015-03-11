@@ -5,8 +5,10 @@ import com.aizhizu.http.HttpMethod;
 import com.aizhizu.http.HttpResponseConfig;
 import com.aizhizu.service.Analyst;
 import com.aizhizu.service.BaseClawer;
+import com.aizhizu.service.house.PlotDataMatcher;
 import com.aizhizu.service.house.UnmatchHouseDataStorer;
 import com.aizhizu.util.CountDownLatchUtils;
+
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -14,6 +16,7 @@ import java.util.Set;
 import java.util.Vector;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
 import org.apache.commons.lang3.StringUtils;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -102,10 +105,17 @@ public class HouseDetailClawer extends BaseClawer {
 			this.analystResult.put(Analyst.FailCount, Integer.valueOf(1));
 			return this.analystResult;
 		}
+		if (StringUtils.isBlank(plotData)) {
+			String matchePlot = PlotDataMatcher.matchPlot(plot);
+			if (!StringUtils.isBlank(matchePlot)) {
+				plotData = redis.getPlotData(matchePlot);
+			}
+		}
 		String x = "";
 		String y = "";
 		String area = "";
 		String circle = "";
+		boolean push = false;
 		if (StringUtils.isBlank(plotData)) {
 			Elements xyDataNodes = doc
 					.select("div[class=phraseobox cf] > div[class=litem fl] > dl> dt:contains(地址) ~ dd > a");
@@ -137,10 +147,11 @@ public class HouseDetailClawer extends BaseClawer {
 					storerMap);
 			new Thread(storer).start();
 		} else {
+			push = true;
 			String[] plotDataArr = plotData.split("\\|");
 			area = plotDataArr[0];
 			circle = plotDataArr[1];
-			String[] yxArr = plotDataArr[2].split(",");
+			String[] yxArr = plotDataArr[2].split(",|，");
 			y = yxArr[0];
 			x = yxArr[1];
 		}
@@ -149,6 +160,8 @@ public class HouseDetailClawer extends BaseClawer {
 		house.setY(y);
 		house.setArea(area);
 		house.setCircle(circle);
+		house.setPush(push);
+		
 		String format = doc
 				.select("div[class=phraseobox cf] > div[class=litem fl] > dl> dt:contains(房型) ~ dd")
 				.text().trim();
@@ -161,6 +174,7 @@ public class HouseDetailClawer extends BaseClawer {
 				.select("div.pinfo > div.box > div[class=phraseobox cf] > div[class=ritem fr] > dl> dt:contains(面积) ~ dd")
 				.text().trim();
 		house.setFloor(floor);
+		acreage = acreage.replaceAll("\\D+", "");
 		house.setAcreage(acreage);
 		String face = doc
 				.select("div[class=phraseobox cf] > div[class=ritem fr] > dl> dt:contains(朝向) ~ dd")
@@ -172,12 +186,19 @@ public class HouseDetailClawer extends BaseClawer {
 		word = word.replaceAll("\n", "").replaceAll("\r", "")
 				.replace("&nbsp;", "");
 		house.setWord("\"" + word + "\"");
-		Elements imageNodes = doc.select("div.picCon > ul > li > a > img");
+		Elements imageNodes = doc.select("div.picCon > ul[style~=margin-left:0] > li > a > img");
 		if (imageNodes.size() != 0) {
 			Set<String> imageUrlList = new HashSet<String>();
 			for (int imageIndex = 0; imageIndex < imageNodes.size(); imageIndex++) {
 				Element imageNode = imageNodes.get(imageIndex);
 				String imageNodeUrl = imageNode.attr("data-src").trim();
+				try {
+					String alt = imageNode.attr("alt").trim();
+					if (StringUtils.equals("暂无图片", alt)) {
+						continue;
+					}
+				} catch (Exception e) {
+				}
 				if (StringUtils.isBlank(imageNodeUrl)) {
 					imageNodeUrl = imageNode.attr("src").trim();
 					if (!StringUtils.isBlank(imageNodeUrl)) {
@@ -187,6 +208,7 @@ public class HouseDetailClawer extends BaseClawer {
 			}
 			house.setImageUrlList(imageUrlList);
 		}
+		house.setLineName("anjuke");
 		this.analystResult.put(Analyst.Info, "succ");
 		this.analystResult.put(Analyst.SuccCount, Integer.valueOf(1));
 		this.analystResult.put(Analyst.Entity, house);
@@ -197,7 +219,7 @@ public class HouseDetailClawer extends BaseClawer {
 	public static void main(String[] args) {
 		BaseClawer b = new HouseDetailClawer(new CountDownLatchUtils(1));
 		Vector<String> v = new Vector<String>();
-		v.add("http://bj.zu.anjuke.com/gfangyuan/33749224");
+		v.add("http://bj.zu.anjuke.com/gfangyuan/37744937");
 		b.setBox(v);
 		b.Implement();
 	}

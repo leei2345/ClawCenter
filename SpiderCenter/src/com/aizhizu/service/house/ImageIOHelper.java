@@ -15,6 +15,7 @@ import javax.imageio.stream.ImageInputStream;
 import javax.imageio.stream.ImageOutputStream;
 
 public class ImageIOHelper {
+	
 	public static File createImage(File imageFile, String imageFormat) {
 		File tempFile = null;
 		try {
@@ -26,8 +27,7 @@ public class ImageIOHelper {
 
 			IIOMetadata streamMetadata = reader.getStreamMetadata();
 
-			TIFFImageWriteParam tiffWriteParam = new TIFFImageWriteParam(
-					Locale.ENGLISH);
+			TIFFImageWriteParam tiffWriteParam = new TIFFImageWriteParam(Locale.ENGLISH);
 			tiffWriteParam.setCompressionMode(0);
 
 			Iterator<ImageWriter> writers = ImageIO.getImageWritersByFormatName("tiff");

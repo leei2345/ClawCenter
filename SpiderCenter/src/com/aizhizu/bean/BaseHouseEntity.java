@@ -14,6 +14,15 @@ public class BaseHouseEntity implements Serializable {
 	protected String url;
 	protected int num;
 	protected Set<String> imageUrlList = new HashSet<String>();
+	protected boolean push = false;
+
+	public boolean isPush() {
+		return push;
+	}
+
+	public void setPush(boolean push) {
+		this.push = push;
+	}
 
 	public String getUrl() {
 		return this.url;

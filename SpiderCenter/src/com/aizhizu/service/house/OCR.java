@@ -19,25 +19,26 @@ public class OCR {
 		File outputFile = new File(imageFile.getParentFile(), "output");
 		StringBuffer strB = new StringBuffer();
 		List<String> cmd = new ArrayList<String>();
-		if (OS.isWindowsXP())
+		if (OS.isWindowsXP()) {
 			cmd.add(this.tessPath + "//tesseract");
-		else if (OS.isLinux())
+		} else if (OS.isLinux()) {
 			cmd.add("tesseract");
-		else {
+	 	} else {
 			cmd.add(this.tessPath + "//tesseract");
 		}
 		cmd.add("");
 		cmd.add(outputFile.getName());
-		cmd.add("digits");
 		cmd.add(LANG_OPTION);
 		cmd.add("eng");
 		cmd.add("-psm");
 		cmd.add("7");
+		cmd.add("digits");
 
 		ProcessBuilder pb = new ProcessBuilder(new String[0]);
 		pb.directory(imageFile.getParentFile());
 
 		cmd.set(1, tempImage.getName());
+//		System.out.println(tempImage.getAbsolutePath() + " " + cmd);
 		pb.command(cmd);
 		pb.redirectErrorStream(true);
 
@@ -48,8 +49,7 @@ public class OCR {
 		tempImage.delete();
 
 		if (w == 0) {
-			BufferedReader in = new BufferedReader(new InputStreamReader(
-					new FileInputStream(outputFile.getAbsolutePath() + ".txt"),
+			BufferedReader in = new BufferedReader(new InputStreamReader(new FileInputStream(outputFile.getAbsolutePath() + ".txt"),
 					"UTF-8"));
 			String str;
 			while ((str = in.readLine()) != null) {

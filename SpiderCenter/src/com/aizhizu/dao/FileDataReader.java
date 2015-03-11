@@ -88,8 +88,7 @@ public class FileDataReader extends DataReader {
 		IOUtils.closeQuietly(br);
 	}
 
-	@SuppressWarnings({ "rawtypes", "unchecked" })
-	@Override
+	@SuppressWarnings("rawtypes")
 	protected List allRead() {
 		List<String> all = null;
 		try {
