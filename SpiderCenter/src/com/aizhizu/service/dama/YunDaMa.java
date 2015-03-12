@@ -15,7 +15,7 @@ import com.alibaba.fastjson.JSONObject;
 
 public class YunDaMa {
 
-	private static final int RETRYCOUNT = 3;
+	private static final int RETRYCOUNT = 5;
 	private File imageFile;
 	private static Map<String, String> uploadparams = new HashMap<String, String>();
 	private static Map<String, String> reportparams = new HashMap<String, String>();
@@ -31,6 +31,7 @@ public class YunDaMa {
 		uploadparams.put("codetype", ConfigUtil.getString("codetype"));
 		uploadparams.put("appid", ConfigUtil.getString("appid"));
 		uploadparams.put("appkey", ConfigUtil.getString("appkey"));
+		uploadparams.put("timeout", ConfigUtil.getString("timeout"));
 		
 		reportparams.put("username", ConfigUtil.getString("username"));
 		reportparams.put("password", ConfigUtil.getString("password"));
@@ -70,32 +71,67 @@ public class YunDaMa {
 	
 	public String GetPhoneNumber () {
 		String phoneNumber = defaultPhoneNum;
+		String fileName = imageFile.getName();
 		Map<String, File> map = new HashMap<String, File>();
 		map.put("file", imageFile);
-		for (int retryIndex = 1; retryIndex <= RETRYCOUNT; retryIndex++) {
+out:	for (int retryIndex = 1; retryIndex <= RETRYCOUNT; retryIndex++) {
+			try {
+				Thread.sleep(2000);
+			} catch (InterruptedException e2) {
+				e2.printStackTrace();
+			}
 			HttpMethod me = new HttpMethod();
 			//{"ret":0,"cid":433761793,"text":"13651042000"}
 			String phoneStr = me.DaMa(url, uploadparams, map);
 			String phoneNumStr;
 			long cid;
+			int statusCode = 999;
 			try {
 				JSONObject object = JSONObject.parseObject(phoneStr);
-				int statusCode = object.getIntValue("ret");
-				if (statusCode != 0) {
+				statusCode = object.getIntValue("ret");
+				if (statusCode != 0 && statusCode != -3002) {
 					String mes = configparams.get(statusCode);
-					logger.info("[第" + retryIndex + "次打码失败][" + mes + "][" + statusCode + "]");
-					continue;
+					logger.info("[" + fileName + "][第" + retryIndex + "次打码失败][" + mes + "][" + statusCode + "]");
+					continue out;
 				}
 				phoneNumStr = object.getString("text");
 				cid = object.getLongValue("cid");
+				if (StringUtils.isBlank(phoneNumStr)) {
+in:				for (int loopIndex = 1; loopIndex <= 30; loopIndex++) {
+						Thread.sleep(2000);
+						String targetUrl = url +"?cid=" + cid + "&method=result";
+						String result = me.LoopDaMa(targetUrl);
+						try {
+							JSONObject loopObj = JSONObject.parseObject(result);
+							int loopStatusCode = loopObj.getIntValue("ret");
+							if (loopStatusCode != 0) {
+								String mes = configparams.get(loopStatusCode);
+								logger.info("[" + fileName + "][第" + retryIndex + "次打码失败][第" + loopIndex + "次重试][" + mes + "][" + statusCode + "]");
+								continue in;
+							}
+							String phoneResult = loopObj.getString("text");
+							if (StringUtils.isBlank(phoneResult)) {
+								continue in;
+							} else {
+								phoneNumStr = phoneResult;
+								break in;
+							}
+						} catch (Exception e) {
+							continue in;
+						}
+					}
+				}
 			} catch (Exception e) {
+				logger.info("[" + fileName + "][第" + retryIndex + "次打码失败][exception][" + e.getLocalizedMessage() + "]");
 				continue;
 			}
 			phoneNumStr = phoneNumStr.replace("-", "").replace("-", "");
-			if (!StringUtils.isBlank(phoneNumStr) && !phoneNumStr.startsWith("1")) {
+			if (!StringUtils.isBlank(phoneNumStr) && !phoneNumStr.startsWith("1") && !phoneNumStr.contains("看不清") && !phoneNumStr.contains("U")) {
+				logger.info("[" + fileName + "][第" + retryIndex + "次打码结束][" + phoneNumStr + "]");
 				break;
-			} else if (phoneNumStr.length() == 11) {
+			} else if (phoneNumStr.matches("\\d{11}")) {
 				phoneNumber = phoneNumStr;
+				logger.info("[" + fileName + "][第" + retryIndex + "次打码成功][" + phoneNumber + "]");
 				break;
 			} else {
 				reportparams.put("cid", String.valueOf(cid));
@@ -106,6 +142,13 @@ public class YunDaMa {
 				targetUrl = targetUrl.replaceFirst("&", "");
 				targetUrl = url +"?" + targetUrl;
 				me.ReporyDaMaError(targetUrl);
+				logger.info("[" + fileName + "][第" + retryIndex + "次打码错误 已经报错][" + phoneNumStr + "]");
+				try {
+					Thread.sleep(2000);
+				} catch (InterruptedException e) {
+					e.printStackTrace();
+					continue;
+				}
 				continue;
 			}
 		}
@@ -113,7 +156,7 @@ public class YunDaMa {
 	}
 	
 	public static void main(String[] args) {
-		File imageFile = new File("/home/leei/git/aizhizu/SpiderCenter/110540a9ecd7bcd66df79e7437589128.png");
+		File imageFile = new File("/home/leei/image/test.png");
 		YunDaMa y = new YunDaMa(imageFile);
 		String test = y.GetPhoneNumber();
 		System.out.println(test);

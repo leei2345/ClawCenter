@@ -195,8 +195,8 @@ public class HouseDetailClawer extends BaseClawer {
 							phoneNum = phoneNumStr;
 							phoneStatus = true;
 						} 
+						imageFile.delete();
 					}
-					imageFile.delete();
 				} catch (Exception e) {
 				}
 			}
@@ -360,7 +360,7 @@ public class HouseDetailClawer extends BaseClawer {
 //		System.out.println(imageUrl);
 		BaseClawer b = new HouseDetailClawer(new CountDownLatchUtils(1));
 		Vector<String> v = new Vector<String>();
-		v.add("http://bj.ganji.com/fang1/1408087561x.htm");
+		v.add("http://bj.ganji.com/fang3/1402628943x.htm");
 		b.setBox(v);
 		b.Implement();
 		Object o = b.getEntity();

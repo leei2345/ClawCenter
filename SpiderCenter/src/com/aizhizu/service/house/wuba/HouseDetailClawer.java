@@ -6,8 +6,8 @@ import com.aizhizu.http.HttpResponseConfig;
 import com.aizhizu.http.Method;
 import com.aizhizu.service.Analyst;
 import com.aizhizu.service.BaseClawer;
+import com.aizhizu.service.dama.YunDaMa;
 import com.aizhizu.service.house.DataPusher;
-import com.aizhizu.service.house.ImageOcr;
 import com.aizhizu.service.house.PlotDataMatcher;
 import com.aizhizu.service.house.UnmatchHouseDataStorer;
 import com.aizhizu.util.CountDownLatchUtils;
@@ -15,6 +15,7 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 
+import java.io.File;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -115,7 +116,7 @@ public class HouseDetailClawer extends BaseClawer {
 		if (!phonePart.contains("*")) {
 			phoneNum = phonePart;
 		} else {
-			phonePart = phonePart.replace("*", "");
+			phoneNum = phonePart;
 			String sourceImageUrl = imageUrl.replace("@@", infoid).replace("##",dispid);
 			HttpMethod sourceImageMe = new HttpMethod(identidy);
 			sourceImageMe.AddHeader(Method.Get, "Host", "yuzufang.house.58.com");
@@ -126,20 +127,22 @@ public class HouseDetailClawer extends BaseClawer {
 			sourceImageMe.AddHeader(Method.Get, "Referer", this.url);
 			String sourceImage = sourceImageMe.GetHtml(sourceImageUrl,HttpResponseConfig.ResponseAsString);
 			phoneImageUrl = sourceImage.replaceAll(".*<img\\s+src='", "").replaceAll("'\\s+/>\",.*", "");
-			String last4Num = "";
-			try {
-				String phoneLast4Num = ImageOcr.getImageLast4Num(identidy, phoneImageUrl);
-				if (phoneLast4Num.matches("\\d{4}")) {
-					last4Num = phoneLast4Num;
-				} 
-			} catch (Exception e) {
+			if (!StringUtils.isBlank(phoneImageUrl)) {
+				try {
+					File imageFile = this.GetImageFile(identidy, phoneImageUrl);
+					if (imageFile != null) {
+						YunDaMa y = new YunDaMa(imageFile);
+						String phoneNumStr = y.GetPhoneNumber();
+						if (!StringUtils.isBlank(phoneNumStr) && !StringUtils.equals("1", phoneNumStr)) {
+							phoneNum = phoneNumStr;
+							fullPhoneNum = true;
+						} 
+						imageFile.delete();
+						
+					}
+				} catch (Exception e) {
+				}
 			}
-			if (StringUtils.isBlank(last4Num)) {
-				last4Num = "****";
-			} else {
-				fullPhoneNum = true;
-			}
-			phoneNum = phonePart + last4Num;
 		}
 		house.setPhone(phoneNum.replaceAll("\\s+", ""));
 		house.setPhoneImageUrl(phoneImageUrl);
@@ -347,7 +350,7 @@ public class HouseDetailClawer extends BaseClawer {
 	public static void main(String[] args) {
 		BaseClawer b = new HouseDetailClawer(new CountDownLatchUtils(1));
 		Vector<String> v = new Vector<String>();
-		v.add("http://bj.58.com/zufang/20789217149318x.shtml");
+		v.add("http://bj.58.com/zufang/21189724417418x.shtml");
 		b.setBox(v);
 		b.Implement();
 		Object o = b.getEntity();

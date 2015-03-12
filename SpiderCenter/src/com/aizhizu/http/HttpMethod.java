@@ -698,6 +698,85 @@ public class HttpMethod {
 		return this.getHtml;
 	}
 	
+	public String LoopDaMa(String url) {
+		if (this.get == null) {
+			this.get = new HttpGet();
+			this.get.setConfig(config.build());
+		}
+		for (int retryIndex = 1; retryIndex <= retryCount; retryIndex++) { 
+			this.getHtml = "";
+			if (retryIndex >= retryCount) {
+				this.get.abort();
+				this.get.releaseConnection();
+				logger.debug("[数据获取][url=" + url + "][status=" + this.postStatus + "][exception=" + this.postException + "]");
+				break;
+			}
+			logger.info("[" + url + "][第" + retryIndex + "次抓取尝试]");
+			try {
+				URI uri = new URI(url);
+				this.get.setURI(uri);
+				HttpResponse response = this.client.execute(this.get);
+				this.getStatus = response.getStatusLine().getStatusCode();
+				HttpEntity entity = response.getEntity();
+				ContentType contentType = ContentType.getOrDefault(entity);
+				entity = new BufferedHttpEntity(entity);
+				Charset charset = contentType.getCharset() != null?contentType.getCharset():getCharsetFromByte(EntityUtils.toByteArray(entity));
+				String responseCharset = "";
+				if (charset != null) {
+					responseCharset = charset.toString();
+				}
+				if (StringUtils.isBlank(responseCharset)) {
+					responseCharset = "UTF-8";
+				}
+				if (StringUtils.equals("GB2312", responseCharset)) {
+					responseCharset = "GBK";
+				}
+				this.getHtml = EntityUtils.toString(entity);
+			} catch (SocketTimeoutException e) {
+				this.getException = "SocketTimeoutException";
+				this.get.abort();
+				this.get.releaseConnection();
+				continue;
+			} catch (ConnectTimeoutException e) {
+				this.getException = "ConnectTimeoutException";
+				this.get.abort();
+				this.get.releaseConnection();
+				continue;
+			} catch (UnknownHostException e) {
+				this.postException = "UnknownHostException";
+				this.post.abort();
+				this.post.releaseConnection();
+				continue;
+			} catch (IOException e) {
+				this.getException = "IOException";
+				this.get.abort();
+				this.get.releaseConnection();
+				continue;
+			} catch (URISyntaxException e) {
+				this.getException = "URISyntaxException";
+				this.get.abort();
+				this.get.releaseConnection();
+				continue;
+			} catch (Exception e) {
+				this.getException = e.getMessage();
+				this.get.abort();
+				this.get.releaseConnection();
+				continue;
+			} finally {
+				this.get.abort();
+				this.get.releaseConnection();
+			}
+			if ((this.getStatus == 200) && (!StringUtils.isBlank(this.getHtml))) {
+				logger.debug("[数据获取][url=" + url + "][html=" + this.postHtml + "]");
+				break;
+			} else {
+				this.getException = "response null";
+				continue;
+			}
+		}
+		return this.getHtml;
+	}
+	
 	
 	@SuppressWarnings("static-access")
 	public byte[][] GetImageByteArr(String url) {
