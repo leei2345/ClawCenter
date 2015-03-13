@@ -177,6 +177,10 @@ public abstract class BaseHouseListClawer extends BaseClawer {
 		String url = house.getUrl();
 		boolean matched = house.isPush();
 		int rowNum = house.getNum();
+		String phoneNum = house.getPhone();
+		if (phoneNum.contains("**")) {
+			return false;
+		}
 		File imageFileDir = new File(this.filePath + "/" + rowNum);
 		if (!imageFileDir.exists()) {
 			imageFileDir.mkdirs();

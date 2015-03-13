@@ -14,7 +14,6 @@ public class HouseChuzuEntity extends BaseHouseEntity {
 	
 	private static final long serialVersionUID = 4967926538232341117L;
 	
-	private String phone;
 	private String phoneImageUrl = "";
 	private String landlord = "房东";
 	private int gender = 1;
@@ -42,14 +41,6 @@ public class HouseChuzuEntity extends BaseHouseEntity {
 
 	public void setLineName(String lineName) {
 		this.lineName = lineName;
-	}
-
-	public String getPhone() {
-		return this.phone;
-	}
-
-	public void setPhone(String phone) {
-		this.phone = phone;
 	}
 
 	public String getPhoneImageUrl() {

@@ -127,6 +127,9 @@ public class HouseDetailClawer extends BaseClawer {
 			sourceImageMe.AddHeader(Method.Get, "Referer", this.url);
 			String sourceImage = sourceImageMe.GetHtml(sourceImageUrl,HttpResponseConfig.ResponseAsString);
 			phoneImageUrl = sourceImage.replaceAll(".*<img\\s+src='", "").replaceAll("'\\s+/>\",.*", "");
+			if (phoneImageUrl.contains("<HTML>")) {
+				phoneImageUrl = "";
+			}
 			if (!StringUtils.isBlank(phoneImageUrl)) {
 				try {
 					File imageFile = this.GetImageFile(identidy, phoneImageUrl);

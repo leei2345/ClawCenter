@@ -55,6 +55,10 @@ public class DataPusher implements Runnable {
 
 	public void run() {
 		StringBuilder bodyBuilder = new StringBuilder();
+		String phoneNum = this.house.getPhone();
+		if (phoneNum.contains("**")) {
+			return;
+		}
 		bodyBuilder.append("phone=" + this.house.getPhone());
 		bodyBuilder.append("&nickName=" + this.house.getLandlord());
 		bodyBuilder.append("&gender=" + this.house.getGender());
