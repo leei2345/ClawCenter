@@ -26,7 +26,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.BasicCookieStore;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -133,10 +133,9 @@ public class HouseDetailClawer extends BaseClawer {
 		String phonePart = doc.select("div.basic-info-contact > div#contact-phone > span#s_part_phone > em.contact-mobile").text().trim();
 		String phoneNum = "";
 		boolean phoneStatus = false;
-		CloseableHttpClient loginClient = null;
-		loginClient = InitHttpClient.GetLoginedHttpClient();
+		BasicCookieStore cookie = InitHttpClient.GetLoginedHttpClient();
 		boolean clawPhoneNum = false;
-		if (loginClient != null) {
+		if (cookie != null && cookie.getCookies().size() != 0) {
 			clawPhoneNum = true;
 		}
 		String phoneUrl = "";
@@ -145,8 +144,20 @@ public class HouseDetailClawer extends BaseClawer {
 		} else  if (clawPhoneNum) {
 			phoneNum = phonePart;
 			String sourceImageUrl = imageUrl.replace("@@", fphoneStr).replace("##",ca_id).replace("$$", puid);
-			HttpMethod sourceImageMe = new HttpMethod(identidy, loginClient);
+			HttpMethod sourceImageMe = new HttpMethod(identidy, cookie);
 			if (StringUtils.isBlank(phoneUrl)) {
+				sourceImageMe.SetTimeOut(60000);
+				sourceImageMe.AddHeader(Method.Get, "Accept", "application/json, text/javascript, */*; q=0.01");
+				sourceImageMe.AddHeader(Method.Get, "Accept-Encoding", "gzip, deflate");
+				sourceImageMe.AddHeader(Method.Get, "Accept-Language", "zh-CN,zh;q=0.8");
+				sourceImageMe.AddHeader(Method.Get, "Connection", "keep-alive");
+//				sourceImageMe.AddHeader(Method.Get, "Content-Length", "");
+//				sourceImageMe.AddHeader(Method.Get, "Content-Type", "application/x-www-form-urlencoded; charset=UTF-8");
+				sourceImageMe.AddHeader(Method.Get, "Host", "bj.ganji.com");
+//				sourceImageMe.AddHeader(Method.Get, "Origin", "http://bj.ganji.com");
+				sourceImageMe.AddHeader(Method.Get, "Referer", url);
+				sourceImageMe.AddHeader(Method.Get, "User-Agent", "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Ubuntu Chromium/41.0.2272.76 Chrome/41.0.2272.76 Safari/537.36");
+				sourceImageMe.AddHeader(Method.Get, "X-Requested-With", "XMLHttpRequest");
 				String sourceImage = sourceImageMe.GetHtml(sourceImageUrl,HttpResponseConfig.ResponseAsStream);
 				if (!StringUtils.isBlank(sourceImage)) {
 					Object ret = null;
@@ -360,7 +371,7 @@ public class HouseDetailClawer extends BaseClawer {
 //		System.out.println(imageUrl);
 		BaseClawer b = new HouseDetailClawer(new CountDownLatchUtils(1));
 		Vector<String> v = new Vector<String>();
-		v.add("http://bj.ganji.com/fang3/1402628943x.htm");
+		v.add("http://bj.ganji.com/fang1/1414037776x.htm");
 		b.setBox(v);
 		b.Implement();
 		Object o = b.getEntity();

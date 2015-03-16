@@ -4,8 +4,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.impl.client.BasicCookieStore;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -17,14 +16,14 @@ import com.aizhizu.http.HttpResponseConfig;
 import com.aizhizu.http.Method;
 import com.alibaba.fastjson.JSONObject;
 
-@SuppressWarnings("deprecation")
 public class InitHttpClient {
 	
 	private static final String identidy = "web_ganji";
 	private static final Logger logger = LoggerFactory.getLogger("ClawerLogger");
 	private static final String BaseUrl = "https://passport.ganji.com/login.php?next=http%3A%2F%2Fbj.ganji.com%2Ffang1%2Fa1%2F";
 	private static Pattern scriptPattern = Pattern.compile("__hash__ = '(.*?)';");
-	private static CloseableHttpClient client = new DefaultHttpClient();
+//	private static CloseableHttpClient client = new DefaultHttpClient();
+	private static BasicCookieStore cookieStore = null;
 	private static boolean InitHttpClientStat = false;
 	private static long timeStemp = 0l;
 	private static final long intervalTime = 1200000;
@@ -48,7 +47,8 @@ public class InitHttpClient {
 		
 	public static void Login () {
 		InitHttpClientStat = false;
-		client = null;
+//		client = null;
+		cookieStore = new BasicCookieStore();
 		u = UserCenter.GetNextUser();
 		String user = u.getName();
 		String passwd = u.getPasswd();
@@ -100,7 +100,8 @@ public class InitHttpClient {
 						logger.info("[" + identidy + "][============STEP TWO FAIL============]");
 					} else {
 						InitHttpClientStat = true;
-						client = method.getClient();
+//						client = method.getClient();
+						cookieStore = method.getCookieStore();
 						logger.info("[" + identidy + "][============STEP TWO  SUCCESS============]");
 					}
 				} catch (Exception e) {
@@ -115,17 +116,27 @@ public class InitHttpClient {
 	
 	public static void ResetHttpClientStat (UserStat stat) {
 		InitHttpClientStat = false;
-		client = null;
+//		client = null;
+		cookieStore = new BasicCookieStore();
 		UserCenter.SetUserStatusInactive(stat);
 	}
 	
-	public static CloseableHttpClient GetLoginedHttpClient () {
-		long now_time = System.currentTimeMillis();
-		if (!InitHttpClientStat || (now_time - timeStemp > intervalTime)) {
-			Login();
-		}
-		return client;
+//	public static CloseableHttpClient GetLoginedHttpClient () {
+//		long now_time = System.currentTimeMillis();
+//		if (!InitHttpClientStat || (now_time - timeStemp > intervalTime)) {
+//			Login();
+//		}
+//		return client;
+//	}
+	
+	public static BasicCookieStore GetLoginedHttpClient () {
+	long now_time = System.currentTimeMillis();
+	if (!InitHttpClientStat || (now_time - timeStemp > intervalTime)) {
+		Login();
 	}
+	return cookieStore;
+}
+	
 	
 	public static String printRuntime (long delayTime) {
 		long min = delayTime/(60*1000);   
@@ -138,11 +149,33 @@ public class InitHttpClient {
 	public static void main(String[] args) {
 //		String url = "http://bj.ganji.com/fang1/1284641292x.htm";
 		Login();
-		HttpMethod me = new HttpMethod("web_ganji", client);
-		String html = me.GetHtml("http://bj.ganji.com/fang1/1351368495x.htm", HttpResponseConfig.ResponseAsStream);
+		HttpMethod me = new HttpMethod("web_ganji");
+		String html = me.GetHtml("http://bj.ganji.com/fang1/1414037776x.htm", HttpResponseConfig.ResponseAsStream);
 		Document doc = Jsoup.parse(html);
-		String text = doc.select("div#contact-phone").text();
-		System.out.println(text);
+		
+		Element fphoneNode = null;
+		Element ca_idNode = null;
+		Element puidNode = null;
+		String fphoneStr = "";
+		String ca_id = "";
+		String puid = "";
+		try {
+			fphoneNode = doc.select("input#fphone").first();
+			ca_idNode = doc.select("input#ca_id").first();
+			puidNode = doc.select("input#puid").first();
+			fphoneStr = fphoneNode.attr("value").trim();
+			ca_id = ca_idNode.attr("value").trim();
+			puid = puidNode.attr("value").trim();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		String imageUrl = "http://bj.ganji.com/ajax.php?dir=house&module=get_detail_viewer_login_status&fphone=@@&ca_id=##&puid=$$";
+		String sourceImageUrl = imageUrl.replace("@@", fphoneStr).replace("##",ca_id).replace("$$", puid);
+		HttpMethod sourceImageMe = new HttpMethod(identidy, cookieStore);
+		String sourceImage = sourceImageMe.GetHtml(sourceImageUrl,HttpResponseConfig.ResponseAsStream);
+		
+//		String text = doc.select("div#contact-phone").text();
+		System.out.println(sourceImage);
 	}
 	
 

@@ -15,7 +15,7 @@
 		<!--  <property name="url" value="jdbc:mysql://123.57.38.136:3306/house?useUnicode=true&amp;characterEncoding=utf-8" /> --> 
  		<property name="url" value="jdbc:mysql://localhost:3306/house?useUnicode=true&amp;characterEncoding=utf-8" /> 
 	 	<property name="username" value="root" />
-		<property name="password" value="whoami" />
+		<property name="password" value="aizhizu-spider" />
 		<property name="timeBetweenEvictionRunsMillis" value="1000" /> 
 		<property name="minEvictableIdleTimeMillis" value="1000" /> 
 		<property name="testOnBorrow" value="false" /> 

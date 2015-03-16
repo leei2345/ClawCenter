@@ -38,6 +38,7 @@ import org.apache.http.entity.BufferedHttpEntity;
 import org.apache.http.entity.ContentType;
 import org.apache.http.entity.InputStreamEntity;
 import org.apache.http.entity.mime.MultipartEntityBuilder;
+import org.apache.http.impl.client.BasicCookieStore;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
@@ -58,6 +59,7 @@ import com.aizhizu.service.proxy.ProxyChecker;
 public class HttpMethod {
 	
 	private CloseableHttpClient client = new DefaultHttpClient();
+	private BasicCookieStore cookieStore = new BasicCookieStore();
 	private static final Logger logger = LoggerFactory.getLogger("HttpLogger");
 	private HttpGet get = null;
 	private HttpPost post = null;
@@ -89,7 +91,7 @@ public class HttpMethod {
 		this.clientBuilder = HttpClientBuilder.create();
 		this.clientBuilder.setMaxConnTotal(100);
 		this.clientBuilder.setMaxConnPerRoute(500);
-		this.client = this.clientBuilder.setDefaultRequestConfig(this.config.build()).build();
+		this.client = this.clientBuilder.setDefaultRequestConfig(this.config.build()).setDefaultCookieStore(cookieStore).build();
 		if (identidy != null) {
 			initProxyMap();
 		}
@@ -103,14 +105,23 @@ public class HttpMethod {
 		}
 	}
 	
-	public CloseableHttpClient getClient() {
-		return client;
+	public HttpMethod(String identidy, BasicCookieStore cookieStore) {
+		this.identidy = identidy;
+		this.config.setAuthenticationEnabled(true);
+		this.config.setConnectTimeout(30000);
+		this.config.setSocketTimeout(30000);
+		this.clientBuilder = HttpClientBuilder.create();
+		this.clientBuilder.setMaxConnTotal(100);
+		this.clientBuilder.setMaxConnPerRoute(500);
+		this.cookieStore = cookieStore;
+		this.client = this.clientBuilder.setDefaultRequestConfig(this.config.build()).setDefaultCookieStore(cookieStore).build();
+		if (identidy != null) {
+			initProxyMap();
+		}
 	}
 	
-	public void setClient(CloseableHttpClient client) {
-		if (client != null) {
-			this.client = client;
-		}
+	public BasicCookieStore getCookieStore() {
+		return cookieStore;
 	}
 
 	public static String initProxyMap() {
@@ -190,15 +201,12 @@ public class HttpMethod {
 		} else {
 			responseAsStream = httpResponseConfig.isYesOrNo();
 		}
-		if (this.get == null) {
-			this.get = new HttpGet();
-			RequestConfig.Builder builder = this.config;
-			this.get.setConfig(builder.build());
-		}
 		HttpHost proxy = null;
 		String locationHeader = "";
 		List<HttpHost> proxySet =  proxyMap.get(this.identidy);
 		for (int retryIndex = 1; retryIndex <= retryCount; retryIndex++) {
+			this.get = new HttpGet();
+			this.get.setConfig(config.build());
 			if (retryIndex >= retryCount) {
 				this.get.abort();
 				this.get.releaseConnection();
@@ -210,10 +218,9 @@ public class HttpMethod {
 				int index = (int) (Math.random() * size);
 				proxy = (HttpHost) proxySet.get(index);
 				if (proxy != null) {
-						RequestConfig.Builder builder = this.config;
-//						proxy = new HttpHost("111.161.126.101", 80);
-						builder.setProxy(proxy);
-						this.get.setConfig(builder.build());
+					this.config.setProxy(proxy);
+					/** 使用添加临时代理的config覆盖默认config */
+					this.get.setConfig(config.build());
 				}
 			}
 			if (proxy == null) {
@@ -362,13 +369,11 @@ public class HttpMethod {
 		} else {
 			responseStream = httpResponseConfig.isYesOrNo();
 		}
-		if (this.post == null) {
-			this.post = new HttpPost();
-			this.post.setConfig(config.build());
-		}
 		List<HttpHost> proxySet = proxyMap.get(this.identidy);
 		String locationHeader = "";
 		for (int retryIndex = 1; retryIndex <= retryCount; retryIndex++) {
+			this.post = new HttpPost();
+			this.post.setConfig(config.build());
 			postHtml = "";
 			if (retryIndex >= retryCount) {
 				this.post.abort();
@@ -517,11 +522,9 @@ public class HttpMethod {
 	 * @return 远程主机响应正文
 	 */
 	public String DaMa(String url, Map<String, String> params, Map<String, File> imagefile) {
-		if (this.post == null) {
+		for (int retryIndex = 1; retryIndex <= retryCount; retryIndex++) { 
 			this.post = new HttpPost();
 			this.post.setConfig(config.build());
-		}
-		for (int retryIndex = 1; retryIndex <= retryCount; retryIndex++) { 
 			this.postHtml = "";
 			if (retryIndex >= retryCount) {
 				this.post.abort();
@@ -620,11 +623,9 @@ public class HttpMethod {
 	 * @return 远程主机响应正文
 	 */
 	public String ReporyDaMaError(String url) {
-		if (this.get == null) {
+		for (int retryIndex = 1; retryIndex <= retryCount; retryIndex++) { 
 			this.get = new HttpGet();
 			this.get.setConfig(config.build());
-		}
-		for (int retryIndex = 1; retryIndex <= retryCount; retryIndex++) { 
 			this.getHtml = "";
 			if (retryIndex >= retryCount) {
 				this.get.abort();
@@ -699,11 +700,9 @@ public class HttpMethod {
 	}
 	
 	public String LoopDaMa(String url) {
-		if (this.get == null) {
+		for (int retryIndex = 1; retryIndex <= retryCount; retryIndex++) { 
 			this.get = new HttpGet();
 			this.get.setConfig(config.build());
-		}
-		for (int retryIndex = 1; retryIndex <= retryCount; retryIndex++) { 
 			this.getHtml = "";
 			if (retryIndex >= retryCount) {
 				this.get.abort();
@@ -789,13 +788,11 @@ public class HttpMethod {
 		builderInner.setRedirectsEnabled(false);
 		builderInner.setConnectTimeout(20000);
 		builderInner.setSocketTimeout(20000);
-		if (this.get == null) {
-			this.get = new HttpGet();
-			this.get.setConfig(builderInner.build());
-		}
 		String imageType = "txt";
 		List<HttpHost> proxySet = proxyMap.get(this.identidy);
 		for (int retryIndex = 1; retryIndex <= retryCount; retryIndex++) {
+			this.get = new HttpGet();
+			this.get.setConfig(builderInner.build());
 			if (retryIndex >= retryCount) {
 				this.get.abort();
 				this.get.releaseConnection();
@@ -887,6 +884,12 @@ public class HttpMethod {
 		HttpHost proxy = new HttpHost(ip, port);
 		this.config.setProxy(proxy);
 		this.client = this.clientBuilder.setDefaultRequestConfig(this.config.build()).build();
+	}
+	
+	public void SetTimeOut(int timeout) {
+		this.config.setConnectTimeout(timeout);
+		this.config.setSocketTimeout(timeout);
+		this.client = this.clientBuilder.setDefaultRequestConfig(this.config.build()).setDefaultCookieStore(cookieStore).build();
 	}
 
 	public static Charset getCharsetFromByte(byte[] byteArray) {
