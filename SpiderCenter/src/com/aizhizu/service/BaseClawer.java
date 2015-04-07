@@ -120,12 +120,10 @@ public abstract class BaseClawer implements Runnable {
 			LoggerUtil.ClawerLog("[" + this.identidy + "][" + Progress() + "][" + info + "][" + (String) this.box.get(0) + "]");
 		} catch (JSONException je) {
 			je.printStackTrace();
-			this.cdl.countDown();
 			result = false;
 			LoggerUtil.ClawerLog("[" + this.identidy + "][" + Progress() + "][fail][" + (String) this.box.get(0) + "]");
 		} catch (Exception e) {
 			e.printStackTrace();
-			this.cdl.countDown();
 			result = false;
 			LoggerUtil.ClawerLog("[" + this.identidy + "][" + Progress() + "][fail][" + (String) this.box.get(0) + "]");
 		}

@@ -10,7 +10,7 @@
             <port>3306</port>
             <name>house</name>
             <uid>root</uid>
-            <pwd>whoami</pwd>
+            <pwd>aizhizu-spider</pwd>
             <maxPools>64</maxPools>
             <maxed>WAIT</maxed>
         </database>

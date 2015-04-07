@@ -12,6 +12,7 @@ import java.net.URLClassLoader;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Vector;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -29,15 +30,15 @@ import com.aizhizu.util.LoggerUtil;
 
 public abstract class BaseHouseClawer extends BaseClawer {
 	
-	protected ConcurrentLinkedQueue<String> taskList = new ConcurrentLinkedQueue<String>();
+	protected static ConcurrentHashMap<String, ConcurrentLinkedQueue<String>> taskMap = new ConcurrentHashMap<String, ConcurrentLinkedQueue<String>>();
 	protected String filePath;
-	protected CountDownLatchUtils listCdl;
+	protected CountDownLatchUtils wrapperCdl;
 	protected static FastDateFormat sim = FastDateFormat.getInstance("yyyyMMdd|HH:mm");
 	protected static String tempStr = "序号,source_url,电话,电话来源图片url,房东名,性别,标题,出租类型,价格,城市,小区名,区域,商圈,维度经度,房型格式,楼层,朝向,面积,感言,pic";
 	protected static String baseUrl;
 	protected static String devUrl;
 	private static final long TimeOut = 7000000;
-	private static final int THREADCOUNT = 5;
+	private int threadCount = 5;
 	protected static Map<String, int[]> threadPoolConf = new HashMap<String, int[]>();
 	
 	static {
@@ -71,8 +72,10 @@ public abstract class BaseHouseClawer extends BaseClawer {
 			LoggerUtil.ClawerLog("[" + this.identidy + "][got house list fail][" + e.getMessage() + "]");
 			return;
 		}
-		int taskSize = this.taskList.size();
-		ExecutorService threadPool = Executors.newFixedThreadPool(THREADCOUNT);
+		ConcurrentLinkedQueue<String> taskList = taskMap.get(this.identidy);
+		int taskSize = taskList.size();
+		threadCount = threadPoolConf.get(this.identidy)[1];
+		ExecutorService threadPool = Executors.newFixedThreadPool(threadCount);
 		LoggerUtil.ClawerLog("[" + this.identidy + "][got house list succ][task size " + taskSize + "]");
 		CountDownLatchUtils cdl = new CountDownLatchUtils(taskSize);
 		MornitorEntity mornitor = new MornitorEntity(identidy);
@@ -108,12 +111,13 @@ public abstract class BaseHouseClawer extends BaseClawer {
 		}
 		FileWriterEntity fileWriter = new FileWriterEntity(this.filePath, matchedWriter);
 		AtomicInteger rowNum = new AtomicInteger(2);
-		while (!this.taskList.isEmpty()) {
-			String url = (String) this.taskList.poll();
+		String sourceName = this.identidy.replace("web_", "");
+		while (!taskList.isEmpty()) {
+			String url = (String) taskList.poll();
 			Vector<String> box = new Vector<String>();
 			box.add(url);
 			try {
-				Class clazz = loader.loadClass(packageName	+ ".HouseDetailClawer");
+				Class clazz = loader.loadClass(packageName + "." + sourceName	+ ".HouseDetailClawer");
 				Class[] parameterTypes = { CountDownLatchUtils.class };
 				Object[] params = { cdl };
 				Constructor con = clazz.getConstructor(parameterTypes);
@@ -154,7 +158,7 @@ public abstract class BaseHouseClawer extends BaseClawer {
 		} finally {
 			try {
 				matchedWriter.close();
-				listCdl.countDown();
+				wrapperCdl.countDown();
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
@@ -164,9 +168,8 @@ public abstract class BaseHouseClawer extends BaseClawer {
 	protected void init() {
 	}
 
-	public ConcurrentLinkedQueue<String> GetTaskList() {
-		Implement();
-		return this.taskList;
+	public static void ClearTaskList() {
+		taskMap.clear();
 	}
 
 	public static void main(String[] args) {

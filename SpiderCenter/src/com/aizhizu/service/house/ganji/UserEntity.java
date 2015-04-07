@@ -1,4 +1,4 @@
-package com.aizhizu.bean;
+package com.aizhizu.service.house.ganji;
 
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Matcher;
@@ -13,8 +13,6 @@ import org.jsoup.nodes.Element;
 import com.aizhizu.http.HttpMethod;
 import com.aizhizu.http.HttpResponseConfig;
 import com.aizhizu.http.Method;
-import com.aizhizu.service.house.ganji.UserCenter;
-import com.aizhizu.service.house.ganji.UserStat;
 import com.aizhizu.util.LoggerUtil;
 import com.alibaba.fastjson.JSONObject;
 

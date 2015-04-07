@@ -1,6 +1,7 @@
 package com.aizhizu.service.house.soufang;
 
 import java.util.Map;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 import org.apache.commons.lang3.StringUtils;
 import org.jsoup.Jsoup;
@@ -16,6 +17,7 @@ import com.aizhizu.service.Analyst;
 import com.aizhizu.service.house.BaseHouseClawer;
 import com.aizhizu.util.CountDownLatchUtils;
 import com.aizhizu.util.LoggerUtil;
+import com.alibaba.fastjson.JSONException;
 
 public class HouseListClawer extends BaseHouseClawer {
 	
@@ -29,7 +31,17 @@ public class HouseListClawer extends BaseHouseClawer {
 	}
 	
 	public void run () {
-		this.Implement();
+		String html = "";
+		try {
+			init();
+			html = GetHtml();
+			this.analystResult = Analysis(html);
+		} catch (JSONException je) {
+			je.printStackTrace();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		this.cdl.countDown();
 	}
 
 	protected String GetHtml() {
@@ -67,17 +79,15 @@ public class HouseListClawer extends BaseHouseClawer {
 					.select("div.houseList > dl");
 		}
 		Redis redis = Redis.getInstance();
+		ConcurrentLinkedQueue<String> taskList = taskMap.get(identidy);
 		for (int nodeIndex = 0; nodeIndex < houseNodes.size(); nodeIndex++) {
 			Element houseNode = houseNodes.get(nodeIndex);
-			String houseUrl = houseNode
-					.select("dt[class=img rel floatl] > a")
-					.attr("abs:href").trim();
-			if ((!redis.hasNewsUrl(houseUrl))
-					&& (!StringUtils.isBlank(houseUrl))) {
-				this.taskList.offer(houseUrl);
+			String houseUrl = houseNode.select("dt[class=img rel floatl] > a").attr("abs:href").trim();
+			if ((!redis.hasNewsUrl(houseUrl))	&& (!StringUtils.isBlank(houseUrl))) {
+				taskList.offer(houseUrl);
 			}
 		}
-		LoggerUtil.ClawerLog("[" + identidy + "][list][page " + this.pageIndex + "][tasklist " + this.taskList.size() + "]");
+		LoggerUtil.ClawerLog("[" + identidy + "][list][" + Progress() + "][page " + this.pageIndex + "][tasklist " + taskList.size() + "]");
 		this.analystResult.put(Analyst.Info, "succ");
 		return this.analystResult;
 	}

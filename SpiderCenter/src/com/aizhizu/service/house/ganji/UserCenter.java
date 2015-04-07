@@ -10,7 +10,6 @@ import org.apache.commons.lang3.time.FastDateFormat;
 import org.jdiy.core.Ls;
 import org.jdiy.core.Rs;
 
-import com.aizhizu.bean.UserEntity;
 import com.aizhizu.dao.DataBaseCenter;
 import com.aizhizu.util.LoggerUtil;
 
@@ -30,7 +29,7 @@ public class UserCenter {
 		try {
 			inet = InetAddress.getLocalHost();
 		} catch (Exception e) {
-			host = "127.0.0.1";
+			host = "10.172.252.245";
 		}
 		host = inet.getHostAddress();
 		if (code == 0) {
@@ -73,8 +72,7 @@ public class UserCenter {
 			}
 			userList.add(u);
 		}
-		
-		LoggerUtil.ClawerLog("[==============UserCenter Init done==============]");
+		LoggerUtil.ClawerLog("[==============UserCenter Init done==============][UserList Size " + userList.size() + "]");
 	}
 
 	
@@ -103,7 +101,9 @@ public class UserCenter {
 			u.setStat(UserStat.OnUse);
 			break;
 		}
-		LoggerUtil.ClawerLog("[==============UserCenter Update OnUse Done][============" + u.getName() + "============]");
+		if (u != null) {
+			LoggerUtil.ClawerLog("[==============UserCenter Update OnUse Done][============" + u.getName() + "============]");
+		}
 		return u;
 	}
 	

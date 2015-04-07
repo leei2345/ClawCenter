@@ -19,7 +19,6 @@ import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
 import com.aizhizu.bean.HouseChuzuEntity;
-import com.aizhizu.bean.UserEntity;
 import com.aizhizu.http.HttpMethod;
 import com.aizhizu.http.HttpResponseConfig;
 import com.aizhizu.http.Method;
@@ -145,6 +144,11 @@ public class HouseDetailClawer extends BaseHouseDetailHandler {
 		String phoneNum = "";
 		boolean phoneStatus = false;
 		UserEntity user = UserCenter.GetNextUser();
+		if (user == null) {
+			this.analystResult.put(Analyst.Info, "user null");
+			this.analystResult.put(Analyst.FailCount, Integer.valueOf(1));
+			return this.analystResult;
+		}
 		BasicCookieStore cookie = user.getCookie();
 		boolean clawPhoneNum = false;
 		if (cookie != null && cookie.getCookies().size() != 0) {

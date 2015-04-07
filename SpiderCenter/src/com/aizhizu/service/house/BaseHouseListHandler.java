@@ -5,14 +5,17 @@ import java.lang.reflect.InvocationTargetException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
+import java.util.Map;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import com.aizhizu.service.Analyst;
 import com.aizhizu.service.house.BaseHouseClawer;
 import com.aizhizu.util.CountDownLatchUtils;
 
 
-public abstract class BaseHouseListHandler extends BaseHouseClawer {
+public class BaseHouseListHandler extends BaseHouseClawer {
 	
 	private String fileName;
 	private int listThreadPoolCount = 30;
@@ -32,24 +35,26 @@ public abstract class BaseHouseListHandler extends BaseHouseClawer {
 		}
 	}
 	
-	public BaseHouseListHandler(String identidy, String dataFilepath,CountDownLatchUtils cdl) {
+	public BaseHouseListHandler(String identidy, CountDownLatchUtils cdl, String dataFilepath) {
 		super(identidy);
-		this.filePath = dataFilepath;
-		this.listCdl = cdl;
 		this.fileName = identidy.replaceFirst("web_", "");
 		listThreadPoolCount = threadPoolConf.get(identidy)[0];
 		pageCount = threadPoolConf.get(identidy)[2];
 		threadPool = Executors.newFixedThreadPool(listThreadPoolCount);
+		this.wrapperCdl = cdl;
+		this.filePath = dataFilepath;
 	}
 
 	@SuppressWarnings({ "rawtypes", "unchecked" })
 	@Override
 	public boolean Implement() {
+		ConcurrentLinkedQueue<String> taskList = new ConcurrentLinkedQueue<String>();
+		taskMap.put(identidy, taskList);
 		CountDownLatchUtils listCdl = new CountDownLatchUtils(pageCount);
 		for (int pageIndex = 1; pageIndex <= pageCount; pageIndex++) {
 			try {
 				Class clazz = loader.loadClass(packageName + "." + fileName + ".HouseListClawer");
-				Class[] parameterTypes = {CountDownLatchUtils.class, Integer.class};
+				Class[] parameterTypes = {CountDownLatchUtils.class, int.class};
 				Object[] params = { listCdl, pageIndex };
 				Constructor con = clazz.getConstructor(parameterTypes);
 				Object instance = con.newInstance(params);
@@ -81,5 +86,14 @@ public abstract class BaseHouseListHandler extends BaseHouseClawer {
 		return true;
 	}
 
+	@Override
+	protected String GetHtml() {
+		return null;
+	}
+
+	@Override
+	protected Map<Analyst, Object> Analysis(String paramString) {
+		return null;
+	}
 
 }

@@ -1,6 +1,7 @@
 package com.aizhizu.test.house;
 
 import java.util.Map;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 import org.apache.commons.lang3.StringUtils;
 import org.jsoup.Jsoup;
@@ -56,17 +57,18 @@ public class HouseListClawer extends BaseHouseClawer {
 				houseNodes = doc.select("ul.list > li");
 			}
 			Redis redis = Redis.getInstance();
+			ConcurrentLinkedQueue<String> taskList = taskMap.get(identidy);
 			for (int nodeIndex = 0; nodeIndex < houseNodes.size(); nodeIndex++) {
 				Element houseNode = houseNodes.get(nodeIndex);
 				String houseUrl = houseNode.select("div.list01 > a").attr("abs:href").trim();
 				if (!redis.hasNewsUrl(houseUrl)) {
 					if (!taskList.contains(houseUrl)) {
-						this.taskList.offer(houseUrl);
+						taskList.offer(houseUrl);
 					}
 				}
 			}
 			LoggerUtil.ClawerLog("[" + identidy + "][list][page " + this.pageIndex
-					+ "][tasklist " + this.taskList.size() + "]");
+					+ "][tasklist " + taskList.size() + "]");
 			this.pageIndex += 1;
 			if (this.pageIndex <= pageCount)
 				html = GetHtml();
