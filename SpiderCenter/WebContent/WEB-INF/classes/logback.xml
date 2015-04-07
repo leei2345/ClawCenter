@@ -34,6 +34,26 @@
 	        <pattern>%d{yyyy-MM-dd HH:mm:ss} %-5level%logger{50} - %msg%n</pattern>   
 	    </encoder> 
 	</appender>
+	<appender name="PUSH_LOG" class="ch.qos.logback.core.rolling.RollingFileAppender">   
+	    <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+	        <FileNamePattern>${LOG_HOME}/push.%d{yyyy-MM-dd}.log</FileNamePattern> 
+	        <MaxHistory>10</MaxHistory>
+	    </rollingPolicy>
+	    <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder"> 
+	        <pattern>%d{yyyy-MM-dd HH:mm:ss} %-5level%logger{50} - %msg%n</pattern>   
+	    </encoder> 
+	</appender>
+		<appender name="DataBase_log" class="ch.qos.logback.core.rolling.RollingFileAppender">   
+    <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+        <FileNamePattern>${LOG_HOME}/database.%d{yyyy-MM-dd}.log</FileNamePattern> 
+        <MaxHistory>10</MaxHistory>
+    </rollingPolicy>
+    <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder"> 
+        <pattern>%d{yyyy-MM-dd HH:mm:ss} %-5level%logger{50} - %msg%n</pattern>   
+    </encoder> 
+	</appender>
+	
+	
     <logger name="ClawerLogger" level="INFO" additivity="false">
     	<appender-ref ref="CLAWER_LOG" />
     </logger>
@@ -42,6 +62,15 @@
     </logger>
        <logger name="HttpLogger" level="INFO" additivity="false">
     	<appender-ref ref="HTTP_LOG" />
+    </logger>
+       <logger name="PushLogger" level="INFO" additivity="false">
+    	<appender-ref ref="PUSH_LOG" />
+    </logger>
+     <logger name="org.jdiy.core" level="INFO" additivity="false">
+    	<appender-ref ref="DataBase_log" />
+    </logger>
+    <logger name="DataBaseLogger" level="INFO" additivity="false">
+    	<appender-ref ref="DataBase_log" />
     </logger>
     <root level="INFO">
         <appender-ref ref="STDOUT" />

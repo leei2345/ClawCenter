@@ -1,20 +1,5 @@
 package com.aizhizu.service.house.wuba;
 
-import com.aizhizu.bean.HouseChuzuEntity;
-import com.aizhizu.http.HttpMethod;
-import com.aizhizu.http.HttpResponseConfig;
-import com.aizhizu.http.Method;
-import com.aizhizu.service.Analyst;
-import com.aizhizu.service.BaseClawer;
-import com.aizhizu.service.dama.YunDaMa;
-import com.aizhizu.service.house.DataPusher;
-import com.aizhizu.service.house.PlotDataMatcher;
-import com.aizhizu.service.house.UnmatchHouseDataStorer;
-import com.aizhizu.util.CountDownLatchUtils;
-import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONArray;
-import com.alibaba.fastjson.JSONObject;
-
 import java.io.File;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -30,7 +15,25 @@ import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
-public class HouseDetailClawer extends BaseClawer {
+import com.aizhizu.bean.HouseChuzuEntity;
+import com.aizhizu.http.HttpMethod;
+import com.aizhizu.http.HttpResponseConfig;
+import com.aizhizu.http.Method;
+import com.aizhizu.service.Analyst;
+import com.aizhizu.service.BaseClawer;
+import com.aizhizu.service.dama.YunDaMa;
+import com.aizhizu.service.house.BaseHouseDetailHandler;
+import com.aizhizu.service.house.DataPusher;
+import com.aizhizu.service.house.PlotDataMatcher;
+import com.aizhizu.service.house.UnmatchHouseDataStorer;
+import com.aizhizu.util.CountDownLatchUtils;
+import com.aizhizu.util.LoggerUtil;
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
+
+
+public class HouseDetailClawer extends BaseHouseDetailHandler {
 	private static String identidy = "web_wuba";
 	private String url;
 	private static Pattern pattern = Pattern.compile("var\\s+____json4fe\\s+=\\s+(.*?);\r*?\n*?\\s*?____json4fe\\.modules");
@@ -43,6 +46,14 @@ public class HouseDetailClawer extends BaseClawer {
 	}
 
 	public void run() {
+		try {
+			Implement();
+		} catch (Exception e) {
+			LoggerUtil.ClawerLog("[" + identidy + "][got house detail fail][" + e.getMessage() + "]");
+			return;
+		}
+		HouseChuzuEntity entity = (HouseChuzuEntity) this.getEntity();
+		this.DealWithChuzuData(entity);
 	}
 
 	protected void init() {

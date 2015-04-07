@@ -1,7 +1,5 @@
 package com.aizhizu.service.house;
 
-import com.aizhizu.http.HttpMethod;
-
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
@@ -10,8 +8,9 @@ import java.util.HashSet;
 import java.util.Set;
 
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+
+import com.aizhizu.http.HttpMethod;
+import com.aizhizu.util.LoggerUtil;
 
 /**
  * 异步下载图片
@@ -23,7 +22,6 @@ public class ImageDownLoader implements Runnable {
 	private String filePath;
 	private String sourceUrl;
 	private Set<String> imageUrlList = new HashSet<String>();
-	private static final Logger logger = LoggerFactory.getLogger("ClawerLogger");
 
 	public Set<String> getImageUrlList() {
 		return this.imageUrlList;
@@ -62,7 +60,7 @@ public class ImageDownLoader implements Runnable {
 				imageOut = new FileOutputStream(new File(imageFilePathName));
 				imageOut.write(imageArr[0]);
 				imageOut.flush();
-				logger.info("[" + this.sourceUrl + "][" + imageIndex + " / " + size + "][image download succ]");
+				LoggerUtil.ClawerLog("[" + this.sourceUrl + "][" + imageIndex + " / " + size + "][image download succ]");
 			} catch (FileNotFoundException e) {
 				e.printStackTrace();
 			} catch (IOException e) {

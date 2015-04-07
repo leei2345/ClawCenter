@@ -6,11 +6,10 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.aizhizu.http.HttpMethod;
 import com.aizhizu.util.ConfigUtil;
+import com.aizhizu.util.LoggerUtil;
 import com.alibaba.fastjson.JSONObject;
 
 public class YunDaMa {
@@ -22,7 +21,6 @@ public class YunDaMa {
 	private static Map<Integer, String> configparams = new HashMap<Integer, String>();
 	private static String url;
 	private static final String defaultPhoneNum = "1";
-	private static final Logger logger = LoggerFactory.getLogger("HttpLogger");
 	
 	static  {
 		url = ConfigUtil.getString("url");
@@ -91,7 +89,7 @@ out:	for (int retryIndex = 1; retryIndex <= RETRYCOUNT; retryIndex++) {
 				statusCode = object.getIntValue("ret");
 				if (statusCode != 0 && statusCode != -3002) {
 					String mes = configparams.get(statusCode);
-					logger.info("[" + fileName + "][第" + retryIndex + "次打码失败][" + mes + "][" + statusCode + "]");
+					LoggerUtil.HttpInfoLog("[" + fileName + "][第" + retryIndex + "次打码失败][" + mes + "][" + statusCode + "]");
 					continue out;
 				}
 				phoneNumStr = object.getString("text");
@@ -106,7 +104,7 @@ in:				for (int loopIndex = 1; loopIndex <= 30; loopIndex++) {
 							int loopStatusCode = loopObj.getIntValue("ret");
 							if (loopStatusCode != 0) {
 								String mes = configparams.get(loopStatusCode);
-								logger.info("[" + fileName + "][第" + retryIndex + "次打码失败][第" + loopIndex + "次重试][" + mes + "][" + statusCode + "]");
+								LoggerUtil.HttpInfoLog("[" + fileName + "][第" + retryIndex + "次打码失败][第" + loopIndex + "次重试][" + mes + "][" + statusCode + "]");
 								continue in;
 							}
 							String phoneResult = loopObj.getString("text");
@@ -122,16 +120,16 @@ in:				for (int loopIndex = 1; loopIndex <= 30; loopIndex++) {
 					}
 				}
 			} catch (Exception e) {
-				logger.info("[" + fileName + "][第" + retryIndex + "次打码失败][exception][" + e.getLocalizedMessage() + "]");
+				LoggerUtil.HttpInfoLog("[" + fileName + "][第" + retryIndex + "次打码失败][exception][" + e.getLocalizedMessage() + "]");
 				continue;
 			}
 			phoneNumStr = phoneNumStr.replace("-", "").replace("-", "");
 			if (!StringUtils.isBlank(phoneNumStr) && !phoneNumStr.startsWith("1") && !phoneNumStr.contains("看不清") && !phoneNumStr.contains("U")) {
-				logger.info("[" + fileName + "][第" + retryIndex + "次打码结束][" + phoneNumStr + "]");
+				LoggerUtil.HttpInfoLog("[" + fileName + "][第" + retryIndex + "次打码结束][" + phoneNumStr + "]");
 				break;
 			} else if (phoneNumStr.matches("\\d{11}")) {
 				phoneNumber = phoneNumStr;
-				logger.info("[" + fileName + "][第" + retryIndex + "次打码成功][" + phoneNumber + "]");
+				LoggerUtil.HttpInfoLog("[" + fileName + "][第" + retryIndex + "次打码成功][" + phoneNumber + "]");
 				break;
 			} else {
 				reportparams.put("cid", String.valueOf(cid));
@@ -142,7 +140,7 @@ in:				for (int loopIndex = 1; loopIndex <= 30; loopIndex++) {
 				targetUrl = targetUrl.replaceFirst("&", "");
 				targetUrl = url +"?" + targetUrl;
 				me.ReporyDaMaError(targetUrl);
-				logger.info("[" + fileName + "][第" + retryIndex + "次打码错误 已经报错][" + phoneNumStr + "]");
+				LoggerUtil.HttpInfoLog("[" + fileName + "][第" + retryIndex + "次打码错误 已经报错][" + phoneNumStr + "]");
 				try {
 					Thread.sleep(2000);
 				} catch (InterruptedException e) {

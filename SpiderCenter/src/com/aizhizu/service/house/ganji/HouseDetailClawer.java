@@ -1,19 +1,5 @@
 package com.aizhizu.service.house.ganji;
 
-import com.aizhizu.bean.HouseChuzuEntity;
-import com.aizhizu.http.HttpMethod;
-import com.aizhizu.http.HttpResponseConfig;
-import com.aizhizu.http.Method;
-import com.aizhizu.service.Analyst;
-import com.aizhizu.service.BaseClawer;
-import com.aizhizu.service.dama.YunDaMa;
-import com.aizhizu.service.house.DataPusher;
-import com.aizhizu.service.house.UnmatchHouseDataStorer;
-import com.aizhizu.util.CountDownLatchUtils;
-import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONException;
-import com.alibaba.fastjson.JSONObject;
-
 import java.io.File;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
@@ -32,7 +18,24 @@ import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
-public class HouseDetailClawer extends BaseClawer {
+import com.aizhizu.bean.HouseChuzuEntity;
+import com.aizhizu.bean.UserEntity;
+import com.aizhizu.http.HttpMethod;
+import com.aizhizu.http.HttpResponseConfig;
+import com.aizhizu.http.Method;
+import com.aizhizu.service.Analyst;
+import com.aizhizu.service.BaseClawer;
+import com.aizhizu.service.dama.YunDaMa;
+import com.aizhizu.service.house.BaseHouseDetailHandler;
+import com.aizhizu.service.house.DataPusher;
+import com.aizhizu.service.house.UnmatchHouseDataStorer;
+import com.aizhizu.util.CountDownLatchUtils;
+import com.aizhizu.util.LoggerUtil;
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONException;
+import com.alibaba.fastjson.JSONObject;
+
+public class HouseDetailClawer extends BaseHouseDetailHandler {
 	private static String identidy = "web_ganji";
 	private String url;
 	private static Pattern pattern = Pattern.compile("window.PAGE_CONFIG\\s+=\\s+(.*?)\\s+\\|\\|\\s+\\{\\};");
@@ -45,6 +48,14 @@ public class HouseDetailClawer extends BaseClawer {
 	}
 
 	public void run() {
+		try {
+			Implement();
+		} catch (Exception e) {
+			LoggerUtil.ClawerLog("[" + identidy + "][got house detail fail][" + e.getMessage() + "]");
+			return;
+		}
+		HouseChuzuEntity entity = (HouseChuzuEntity) this.getEntity();
+		this.DealWithChuzuData(entity);
 	}
 
 	protected void init() {
@@ -133,10 +144,13 @@ public class HouseDetailClawer extends BaseClawer {
 		String phonePart = doc.select("div.basic-info-contact > div#contact-phone > span#s_part_phone > em.contact-mobile").text().trim();
 		String phoneNum = "";
 		boolean phoneStatus = false;
-		BasicCookieStore cookie = InitHttpClient.GetLoginedHttpClient();
+		UserEntity user = UserCenter.GetNextUser();
+		BasicCookieStore cookie = user.getCookie();
 		boolean clawPhoneNum = false;
 		if (cookie != null && cookie.getCookies().size() != 0) {
 			clawPhoneNum = true;
+		} else {
+			user.addCount(-1);
 		}
 		String phoneUrl = "";
 		if (!phonePart.contains("*")) {
@@ -146,7 +160,7 @@ public class HouseDetailClawer extends BaseClawer {
 			String sourceImageUrl = imageUrl.replace("@@", fphoneStr).replace("##",ca_id).replace("$$", puid);
 			HttpMethod sourceImageMe = new HttpMethod(identidy, cookie);
 			if (StringUtils.isBlank(phoneUrl)) {
-				sourceImageMe.SetTimeOut(60000);
+//				sourceImageMe.SetTimeOut(60000);
 				sourceImageMe.AddHeader(Method.Get, "Accept", "application/json, text/javascript, */*; q=0.01");
 				sourceImageMe.AddHeader(Method.Get, "Accept-Encoding", "gzip, deflate");
 				sourceImageMe.AddHeader(Method.Get, "Accept-Language", "zh-CN,zh;q=0.8");
@@ -171,18 +185,18 @@ public class HouseDetailClawer extends BaseClawer {
 					if (ret != null) {
 						String retStr = ret.toString();
 						if (StringUtils.equals("-8", retStr)) {
-							InitHttpClient.ResetHttpClientStat(UserStat.PasswdError);
+							UserCenter.SetUserStatusInactive(user, UserStat.PasswdError);
 						} else if (StringUtils.equals("-4", retStr)) {
-							InitHttpClient.ResetHttpClientStat(UserStat.UseLess);
+							UserCenter.SetUserStatusInactive(user, UserStat.UseLess);
 						} else if (!StringUtils.equals("1", retStr)) {
-							InitHttpClient.ResetHttpClientStat(UserStat.Other);
+							UserCenter.SetUserStatusInactive(user, UserStat.Other);
 						} else {
 							try {
 								Object isbind = responseObj.get("isbind");
 								if (isbind != null) {
 									String isbindStr = isbind.toString();
 									if (StringUtils.equals("-1", isbindStr)) {
-										InitHttpClient.ResetHttpClientStat(UserStat.UseLess);
+										UserCenter.SetUserStatusInactive(user, UserStat.UseLess);
 									} else {
 										String imageUrl = responseObj.getString("phoneshow").trim();
 										imageUrl = imageUrl.replaceAll(".*\\?c=", "").replaceAll("\"\\s+/>", "").replaceAll("\n", "").replaceAll("\r", "");
@@ -327,7 +341,7 @@ public class HouseDetailClawer extends BaseClawer {
 		house.setX(x);
 		house.setY(y);
 		house.setFloor(floor);
-		
+
 		String acreage = infoMap.get("area")==null?"":infoMap.get("area");
 		acreage = acreage.replaceAll("\\.\\d+", "");
 		house.setAcreage(acreage);
@@ -371,7 +385,7 @@ public class HouseDetailClawer extends BaseClawer {
 //		System.out.println(imageUrl);
 		BaseClawer b = new HouseDetailClawer(new CountDownLatchUtils(1));
 		Vector<String> v = new Vector<String>();
-		v.add("http://bj.ganji.com/fang1/1414037776x.htm");
+		v.add("http://bj.ganji.com/fang1/1441832596x.htm");
 		b.setBox(v);
 		b.Implement();
 		Object o = b.getEntity();

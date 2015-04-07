@@ -1,28 +1,30 @@
 package com.aizhizu.test.house;
 
-import com.aizhizu.dao.Redis;
-import com.aizhizu.http.HttpMethod;
-import com.aizhizu.http.HttpResponseConfig;
-import com.aizhizu.http.Method;
-import com.aizhizu.service.Analyst;
-import com.aizhizu.service.house.BaseHouseListClawer;
-import com.aizhizu.util.CountDownLatchUtils;
 import java.util.Map;
+
 import org.apache.commons.lang3.StringUtils;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
-public class HouseListClawer extends BaseHouseListClawer {
+import com.aizhizu.dao.Redis;
+import com.aizhizu.http.HttpMethod;
+import com.aizhizu.http.HttpResponseConfig;
+import com.aizhizu.http.Method;
+import com.aizhizu.service.Analyst;
+import com.aizhizu.service.house.BaseHouseClawer;
+import com.aizhizu.util.CountDownLatchUtils;
+import com.aizhizu.util.LoggerUtil;
+
+public class HouseListClawer extends BaseHouseClawer {
 	private static String identidy = "web_lm111";
 	private static final int pageCount = 5;
 	private int pageIndex = 1;
 
-	public HouseListClawer(String filePath, CountDownLatchUtils cdl) {
+	public HouseListClawer(CountDownLatchUtils cdl, int pageIndex) {
 		super(identidy);
-		this.filePath = filePath;
-		this.listcdl = cdl;
+		this.pageIndex = pageIndex;
 	}
 
 	protected String GetHtml() {
@@ -63,7 +65,7 @@ public class HouseListClawer extends BaseHouseListClawer {
 					}
 				}
 			}
-			clawerLogger.info("[" + identidy + "][list][page " + this.pageIndex
+			LoggerUtil.ClawerLog("[" + identidy + "][list][page " + this.pageIndex
 					+ "][tasklist " + this.taskList.size() + "]");
 			this.pageIndex += 1;
 			if (this.pageIndex <= pageCount)
@@ -74,8 +76,7 @@ public class HouseListClawer extends BaseHouseListClawer {
 	}
 
 	public static void main(String[] args) {
-		BaseHouseListClawer b = new HouseListClawer("/home/leei/2014100801/",
-				new CountDownLatchUtils(1));
+		BaseHouseClawer b = new HouseListClawer(new CountDownLatchUtils(1), 1);
 		new Thread(b).start();
 	}
 }

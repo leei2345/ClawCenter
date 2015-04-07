@@ -1,3 +1,4 @@
+<%@page import="com.aizhizu.bean.UserEntity"%>
 <%@page import="java.util.Map.Entry"%>
 <%@page import="com.aizhizu.service.house.ganji.UserCenter"%>
 <%@page import="com.aizhizu.service.house.ganji.UserStat"%>
@@ -31,12 +32,13 @@
 	<br/>
 	<table  border="1" id="ganjiloginstat">
 <%
-	Map<String, UserStat> userStat = UserCenter.userStatusMap;
+	List<UserEntity> userStat = UserCenter.GetUserStatMap();
 	Map<Integer, List<String[]>> sortMap = new HashMap<Integer, List<String[]>>();
-	for (Entry<String, UserStat> entry : userStat.entrySet()) {
-		String name = entry.getKey();
-		UserStat stat = entry.getValue();
+	for (UserEntity entry : userStat) {
+		String name = entry.getName();
+		UserStat stat = entry.getStat();
 		String message = stat.getStatus();
+		String updateTime = entry.getUpdateTime();
 		int statCode = stat.getStatusCode();
 		String color = "";
 		switch (statCode) {
@@ -52,7 +54,7 @@
 			color = "#FFFF33";break;
 			default: break;
 		}
-		String[] arr = new String[]{name, color, message};
+		String[] arr = new String[]{name, color, message,updateTime};
 		List<String[]> mapInner = sortMap.get(statCode);
 		if (mapInner == null) {
 			mapInner = new ArrayList<String[]>();
@@ -63,7 +65,7 @@
 		for (Entry<Integer, List<String[]>> sortEntry : sortMap.entrySet()) {
 			List<String[]> sortList = sortEntry.getValue();
 			for (String[] info : sortList) {
-				out.println("<tr><td>" + info[0] + "</td><td bgcolor='" + info[1] + "'>" + info[2] + "</td></tr>");
+				out.println("<tr><td>" + info[0] + "</td><td bgcolor='" + info[1] + "'>" + info[2] + "</td><td>" + info[3] + "</td></tr>");
 			}
 		}
 	

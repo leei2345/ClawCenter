@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jdiy-config xmlns="http://www.jdiy.org"
+             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+    <databases default="def" showSql="true">
+        
+        <!-- produce -->
+	   <database name="def">
+            <type>MySQL</type>
+            <host>localhost</host>
+            <port>3306</port>
+            <name>house</name>
+            <uid>root</uid>
+            <pwd>whoami</pwd>
+            <maxPools>64</maxPools>
+            <maxed>WAIT</maxed>
+        </database>
+        
+    </databases>
+
+</jdiy-config>

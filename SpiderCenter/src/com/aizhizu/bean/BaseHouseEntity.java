@@ -16,6 +16,16 @@ public class BaseHouseEntity implements Serializable {
 	protected Set<String> imageUrlList = new HashSet<String>();
 	protected boolean push = false;
 	protected String phone;
+	private String lineName = "null";
+
+	public String getLineName() {
+		return lineName;
+	}
+
+	public void setLineName(String lineName) {
+		this.lineName = lineName;
+	}
+
 
 	public String getPhone() {
 		return phone;

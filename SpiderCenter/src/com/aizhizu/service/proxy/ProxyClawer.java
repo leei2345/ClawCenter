@@ -1,7 +1,6 @@
 package com.aizhizu.service.proxy;
 
-import com.aizhizu.dao.DBDataReader;
-import com.aizhizu.dao.DBDataWriter;
+import com.aizhizu.dao.DataBaseCenter;
 import com.aizhizu.http.HttpMethod;
 import com.aizhizu.http.HttpResponseConfig;
 import com.aizhizu.http.Method;
@@ -9,10 +8,11 @@ import com.aizhizu.service.Analyst;
 import com.aizhizu.service.BaseClawer;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import org.jdiy.core.Rs;
 
 
 public class ProxyClawer extends BaseClawer {
@@ -39,18 +39,14 @@ public class ProxyClawer extends BaseClawer {
 		http.AddHeader(Method.Get, "Accept-Language", "zh-cn,zh;q=0.8,en-us;q=0.5,en;q=0.3");
 		http.AddHeader(Method.Get, "Accept-Encoding", "gzip, deflate");
 		http.AddHeader(Method.Get, "Connection", "keep-alive");
-//		http.AddHeader(Method.Get, "Content-Type", "application/x-www-form-urlencoded");
 		http.AddHeader(Method.Get, "If-None-Match", "");
 		http.AddHeader(Method.Get, "Cache-Control", "");
-//		http.AddHeader(Method.Get, "Referer", "http：//miwangip.duapp.com/");
 		String html = http.GetHtml(baseUrl,	HttpResponseConfig.ResponseAsString);
 		return html;
 	}
 
-	@SuppressWarnings("unchecked")
 	protected Map<Analyst, Object> Analysis(String html) {
 		int succCount = 0;
-		int failCount = 0;
 		String[] data = html.split("\n");
 		for (String str : data) {
 			Matcher matcher = pattern.matcher(str);
@@ -62,25 +58,23 @@ public class ProxyClawer extends BaseClawer {
 				try {
 					port = Integer.parseInt(arr[1]);
 				} catch (Exception e) {
-					failCount++;
 					continue;
 				}
 				Map<String, Object> map = new HashMap<String, Object>();
 				map.put("host", host);
 				map.put("port", Integer.valueOf(port));
 				String selectSql = "select host from tb_proxy where host='" + host + "' and port=" + port;
-				DBDataReader reader = new DBDataReader(selectSql);
-				List<Object> list = reader.readList();
-				if (list.size() == 0) {
-					String sql = "insert into tb_proxy (host,port,update_time) values (:host,:port,now())";
-					DBDataWriter writer = new DBDataWriter(sql);
-					writer.writeSingle(map);
+				Rs selectLs = DataBaseCenter.Dao.rs(selectSql);
+				if (selectLs.isNull()) {
+					String sql = "insert into tb_proxy (host,port,update_time) values ('" + host + "'," + port + ",now())";
+					int count = DataBaseCenter.Dao.exec(sql);
+					if (count > 0) {
+						succCount++;
+					}
 				}
-				succCount++;
 			}
 		}
 		this.analystResult.put(Analyst.SuccCount, Integer.valueOf(succCount));
-		this.analystResult.put(Analyst.FailCount, Integer.valueOf(failCount));
 		this.analystResult.put(Analyst.Info, "succ");
 		return this.analystResult;
 	}

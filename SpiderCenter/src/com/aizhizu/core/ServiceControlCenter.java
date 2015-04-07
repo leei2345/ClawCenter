@@ -1,23 +1,20 @@
 package com.aizhizu.core;
 
-import com.aizhizu.dao.DBDataReader;
-import com.aizhizu.dao.DBDataWriter;
+import com.aizhizu.dao.DataBaseCenter;
+import com.aizhizu.util.LoggerUtil;
 
 import java.math.BigDecimal;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.Calendar;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.jdiy.core.Ls;
+import org.jdiy.core.Rs;
 
 /**
  * 控制中心
@@ -27,11 +24,10 @@ import org.slf4j.LoggerFactory;
 public class ServiceControlCenter {
 	/** 调度定时器容器 */
 	private static ConcurrentHashMap<String, ScheduledExecutorService> scheduledMap = new ConcurrentHashMap<String, ScheduledExecutorService>();
-	private static Logger logger = LoggerFactory.getLogger("ClawerLogger");
 	/** 反射公用ClassLoader */
 	private static ClassLoader loader = null;
 	/** 反射所在路径 */
-	private static String packageName = "";
+	private static String packageName;
 
 	static {
 		String classLoaderPath = ServiceControlCenter.class.getClassLoader().getResource("").getPath();
@@ -48,13 +44,12 @@ public class ServiceControlCenter {
 	/**
 	 * 调度控制中心初始化
 	 */
-	@SuppressWarnings("unchecked")
 	public static void ServiceStartInit() {
 		String sql = "select identidy from tb_scheduled_conf";
-		DBDataReader reader = new DBDataReader(sql);
-		List<Map<String, Object>> list = reader.readAll();
-		for (Map<String, Object> map : list) {
-			String identidy = (String) map.get("identidy");
+		Ls ls = DataBaseCenter.Dao.ls(sql, 0, 0);
+		Rs[] items = ls.getItems();
+		for (Rs map : items) {
+			String identidy = map.get("identidy");
 			try {
 				StartHandle(identidy, null, true);
 			} catch (Exception localException) {
@@ -84,19 +79,18 @@ public class ServiceControlCenter {
 	private static boolean StartHandle(String handleName, String conf, boolean init) {
 		boolean res = false;
 		String sql = "select clazz,conf,status from tb_scheduled_conf where identidy='" + handleName + "'";
-		DBDataReader reader = new DBDataReader(sql);
-		Map mapObject = (Map) reader.readSingle();
+		Rs rs = DataBaseCenter.Dao.rs(sql);
 		if (conf == null) {
-			conf = (String) mapObject.get("conf");
+			conf = rs.get("conf");
 		}
 		if (init) {
-			int status = ((Integer) mapObject.get("status")).intValue();
+			int status = rs.getInt("status");
 			if (status == 2) {
 				res = true;
 				return res;
 			}
 		}
-		String clazzName = (String) mapObject.get("clazz");
+		String clazzName = rs.get("clazz");
 		String[] configDataArr = conf.split(";");
 		BigDecimal intervalHoursBig = new BigDecimal(configDataArr[4]);
 		BigDecimal hourTime = new BigDecimal(3600000);
@@ -118,7 +112,7 @@ public class ServiceControlCenter {
 			BaseHandler clawer = (BaseHandler) instance;
 			service.scheduleAtFixedRate(clawer, delayTime, intervalTime,TimeUnit.MILLISECONDS);
 			scheduledMap.put(handleName, service);
-			logger.info("[" + handleName + "][" + printRuntime(delayTime) + "后开始运行][间隔 " + printRuntime(intervalTime) + "][scheduledBoxSize " + scheduledMap.size() + "]");
+			LoggerUtil.ClawerLog("[" + handleName + "][" + printRuntime(delayTime) + "后开始运行][间隔 " + printRuntime(intervalTime) + "][scheduledBoxSize " + scheduledMap.size() + "]");
 			ChangeScheduledStatus(handleName, 0);
 		} catch (ClassNotFoundException e) {
 			e.printStackTrace();
@@ -145,12 +139,9 @@ public class ServiceControlCenter {
 			service.shutdownNow();
 		}
 		scheduledMap.put(handleName, service);
-		String sql = "update tb_scheduled_conf set status=:status where identidy='"	+ handleName + "'";
-		Map<String, Object> map = new HashMap<String, Object>();
-		map.put("status", 2);
-		DBDataWriter writer = new DBDataWriter(sql);
-		writer.writeSingle(map);
-		logger.info("[" + handleName + "][停止运行]");
+		String sql = "update tb_scheduled_conf set status=2 where identidy='"	+ handleName + "'";
+		DataBaseCenter.Dao.exec(sql);
+		LoggerUtil.ClawerLog("[" + handleName + "][停止运行]");
 	}
 
 	protected static synchronized long getDelayTime(String[] runtimeArr) {
@@ -194,20 +185,13 @@ public class ServiceControlCenter {
 	}
 
 	protected static void ChangeScheduledStatus(String identidy, int status) {
-		String sql = "update tb_scheduled_conf set status=:status where identidy='"
-				+ identidy + "'";
-		Map<String, Object> map = new HashMap<String, Object>();
-		map.put("status", Integer.valueOf(status));
-		DBDataWriter writer = new DBDataWriter(sql);
-		writer.writeSingle(map);
+		String sql = "update tb_scheduled_conf set status=" + status + " where identidy='" + identidy + "'";
+		DataBaseCenter.Dao.exec(sql);
 	}
 	
 	protected static void ChangeScheduledConf (String identidy, String conf) {
-		String sql = "update tb_scheduled_conf set conf=:conf where identidy='" + identidy + "'";
-		Map<String, Object> map = new HashMap<String, Object>();
-		map.put("conf", conf);
-		DBDataWriter writer = new DBDataWriter(sql);
-		writer.writeSingle(map);
+		String sql = "update tb_scheduled_conf set conf='" + conf + "' where identidy='" + identidy + "'";
+		DataBaseCenter.Dao.exec(sql);
 	}
 
 	public static void main(String[] args) {

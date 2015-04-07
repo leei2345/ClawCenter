@@ -1,8 +1,7 @@
 package com.aizhizu.service.proxy;
 
-import com.aizhizu.dao.DBDataWriter;
+import com.aizhizu.dao.DataBaseCenter;
 import com.aizhizu.service.Analyst;
-import com.aizhizu.service.BaseClawer;
 import com.aizhizu.util.CountDownLatchUtils;
 
 import java.io.File;
@@ -17,7 +16,7 @@ import java.util.Vector;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpHost;
 
-public class WrapperOfProxyChecker extends BaseClawer {
+public class WrapperOfProxyChecker extends BaseProxyClawer {
 	private static String mark = "proxy check";
 	private static String loaderPath = null;
 	private static ClassLoader loader = null;
@@ -59,24 +58,21 @@ public class WrapperOfProxyChecker extends BaseClawer {
 	protected Map<Analyst, Object> Analysis(String html) {
 		Package p = getClass().getPackage();
 		String packageName = p.getName();
-		File wrappers = new File(loaderPath + packageName.replace(".", "/")
-				+ "/wrapper/");
+		File wrappers = new File(loaderPath + packageName.replace(".", "/") + "/wrapper/");
 		File[] wrapperArr = wrappers.listFiles();
 		int succCount = 0;
 		for (File file : wrapperArr) {
 			String wrapperName = file.getName().replace(".class", "");
 			try {
 				Class clazz = loader.loadClass(packageName + ".wrapper." + wrapperName);
-				BaseProxyChecker proxyChecker = (BaseProxyChecker) clazz
-						.newInstance();
+				BaseProxyChecker proxyChecker = (BaseProxyChecker) clazz.newInstance();
 				proxyChecker.InstallProxyHost(this.host);
 				String identidy = proxyChecker.getIdentidy();
 				int checkProxyStatus = proxyChecker.CheckApplicability();
 				if (checkProxyStatus == 1) {
 					succCount++;
 				}
-				this.proxyCheckResult.put(identidy,
-						Integer.valueOf(checkProxyStatus));
+				this.proxyCheckResult.put(identidy, Integer.valueOf(checkProxyStatus));
 			} catch (ClassNotFoundException e) {
 				e.printStackTrace();
 			} catch (InstantiationException e) {
@@ -120,22 +116,17 @@ public class WrapperOfProxyChecker extends BaseClawer {
 			innerSql = innerSql.substring(0, innerSql.length() - 2);
 			String[] hostStr = this.host.toHostString().split(":");
 			String sql = "";
-			if (update)
-				sql = "update tb_proxy set " + innerSql
-						+ ", avail=avail+1, update_time=now() where host='"
-						+ hostStr[0] + "' and port=" + hostStr[1];
-			else {
-				sql = "update tb_proxy set " + innerSql
-						+ ", unavail=unavail+1, update_time=now() where host='"
-						+ hostStr[0] + "' and port=" + hostStr[1];
+			if (update) {
+				sql = "update tb_proxy set " + innerSql + ", avail=avail+1, update_time=now() where host='" + hostStr[0] + "' and port=" + hostStr[1];
+			} else {
+				sql = "update tb_proxy set " + innerSql + ", unavail=unavail+1, update_time=now() where host='" + hostStr[0] + "' and port=" + hostStr[1];
 			}
-			DBDataWriter writer = new DBDataWriter(sql);
-			writer.writeSingle(this.proxyCheckResult);
+			DataBaseCenter.Dao.exec(sql);
 		}
 	}
 
 	public static void main(String[] args) {
-		BaseClawer b = new WrapperOfProxyChecker(new CountDownLatchUtils(1));
+		BaseProxyClawer b = new WrapperOfProxyChecker(new CountDownLatchUtils(1));
 		Vector<String> v = new Vector<String>();
 		v.add("112.17.0.205:80");
 		b.setBox(v);

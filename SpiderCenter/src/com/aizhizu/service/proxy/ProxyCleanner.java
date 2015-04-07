@@ -1,20 +1,15 @@
 package com.aizhizu.service.proxy;
 
-import com.aizhizu.dao.DBDataReader;
-import com.aizhizu.dao.DBDataWriter;
+import com.aizhizu.dao.DataBaseCenter;
 import com.aizhizu.service.Analyst;
 import com.aizhizu.service.BaseClawer;
 import com.aizhizu.util.ConfigUtil;
 
-import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
-import java.util.Vector;
 
 public class ProxyCleanner extends BaseClawer {
 	private static String identidy = "proxy_delete";
-	private static float threshold = 3.0F;
-	private int cleanProxyCount = 0;
+	private static float threshold = 4.0F;
 
 	public ProxyCleanner() {
 		super(identidy);
@@ -27,25 +22,15 @@ public class ProxyCleanner extends BaseClawer {
 	protected void init() {
 	}
 
-	@SuppressWarnings("unchecked")
 	protected String GetHtml() {
-		String sql = "select * FROM tb_proxy WHERE (avail =0  AND unavail-avail > 10) OR (avail!=0 AND unavail!=0 AND  unavail/avail  > " + threshold + ")";
-		DBDataReader reader = new DBDataReader(sql);
-		List<Map<String, Object>> list = reader.readAll();
-		this.cleanProxyCount = list.size();
-		this.box = new Vector<String>();
-		this.box.add(0, "unavali proxy count " + this.cleanProxyCount);
 		return null;
 	}
 
 	protected Map<Analyst, Object> Analysis(String html) {
-		String sql = "delete FROM tb_proxy WHERE (avail =0  AND unavail-avail > 10) OR (avail!=0 AND unavail!=0 AND  unavail/avail  > " + threshold + ")";
-		Map<String, Float> map = new HashMap<String, Float> ();
-		map.put("threshold", Float.valueOf(threshold));
-		DBDataWriter writer = new DBDataWriter(sql);
-		writer.writeSingle(map);
+		String sql = "delete FROM tb_proxy WHERE (avail =0  AND unavail-avail > 24) OR (avail!=0 AND unavail!=0 AND  unavail/avail  > " + threshold + ")";
+		int count = DataBaseCenter.Dao.exec(sql);
 		this.analystResult.put(Analyst.Info, "succ");
-		this.analystResult.put(Analyst.SuccCount, Integer.valueOf(1));
+		this.analystResult.put(Analyst.SuccCount, count);
 		return this.analystResult;
 	}
 

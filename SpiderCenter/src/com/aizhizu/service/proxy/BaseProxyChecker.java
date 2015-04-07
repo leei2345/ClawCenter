@@ -20,11 +20,15 @@ import org.apache.http.entity.ContentType;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.util.EntityUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.aizhizu.http.HttpMethod;
+import com.aizhizu.util.LoggerUtil;
 
+/**
+ * 代理检测
+ * @author leei
+ *
+ */
 public abstract class BaseProxyChecker {
 	protected String identidy;
 	protected HttpHost proxy;
@@ -33,7 +37,6 @@ public abstract class BaseProxyChecker {
 	private RequestConfig.Builder config = RequestConfig.custom();
 	private HttpClientBuilder clientBuilder = HttpClientBuilder.create();
 	protected HttpGet get = new HttpGet();
-	private static Logger logger = LoggerFactory.getLogger("ProxyLogger");
 
 	public BaseProxyChecker(String identidy, String url) {
 		this.identidy = identidy;
@@ -88,16 +91,16 @@ public abstract class BaseProxyChecker {
 			while ((line = reader.readLine()) != null)
 				html = html + line;
 		} catch (URISyntaxException e) {
-			logger.warn("[proxy check][" + this.identidy + "]["
+			LoggerUtil.ProxyLog("[proxy check][" + this.identidy + "]["
 					+ this.proxy.toHostString() + "][URISyntaxException]");
 		} catch (ClientProtocolException e) {
-			logger.warn("[proxy check][" + this.identidy + "]["
+			LoggerUtil.ProxyLog("[proxy check][" + this.identidy + "]["
 					+ this.proxy.toHostString() + "][ClientProtocolException]");
 		} catch (IOException e) {
-			logger.warn("[proxy check][" + this.identidy + "]["
+			LoggerUtil.ProxyLog("[proxy check][" + this.identidy + "]["
 					+ this.proxy.toHostString() + "][IOException]");
 		} catch (Exception e) {
-			logger.warn("[proxy check][" + this.identidy + "]["
+			LoggerUtil.ProxyLog("[proxy check][" + this.identidy + "]["
 					+ this.proxy.toHostString() + "][" + e.getMessage() + "]");
 		} finally {
 			get.abort();

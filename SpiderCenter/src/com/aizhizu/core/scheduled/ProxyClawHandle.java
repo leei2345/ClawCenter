@@ -5,8 +5,6 @@ import com.aizhizu.core.BaseHandler;
 import com.aizhizu.service.BaseClawer;
 import com.aizhizu.service.proxy.ProxyClawer;
 
-import java.util.Date;
-
 import org.apache.commons.lang3.time.FastDateFormat;
 
 /**
@@ -24,14 +22,10 @@ public class ProxyClawHandle extends BaseHandler {
 
 	protected void StartHandle() {
 		BaseClawer proxyClawer = new ProxyClawer();
-		String date = fdf.format(new Date(System.currentTimeMillis()));
-		String[] dateArr = date.split("\\|");
 		MornitorEntity mornitor = new MornitorEntity(identidy);
-		mornitor.setDate(dateArr[0]);
-		mornitor.setStartTime(dateArr[1]);
 		proxyClawer.setMornitor(mornitor);
 		proxyClawer.Implement();
-		proxyClawer.WriteMornitorDB();
+		mornitor.MakeDB();
 	}
 	
 	public static void main(String[] args) {

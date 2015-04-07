@@ -33,16 +33,7 @@ public class HouseChuzuEntity extends BaseHouseEntity {
 	private String face;
 	private String acreage = "0";
 	private String word = "房东个人直租，欢迎随时看房";
-	private String lineName = "null";
-
-	public String getLineName() {
-		return lineName;
-	}
-
-	public void setLineName(String lineName) {
-		this.lineName = lineName;
-	}
-
+	
 	public String getPhoneImageUrl() {
 		return this.phoneImageUrl;
 	}

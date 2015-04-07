@@ -46,10 +46,9 @@ import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.protocol.BasicHttpContext;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.util.EntityUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.aizhizu.service.proxy.ProxyChecker;
+import com.aizhizu.util.LoggerUtil;
 
 @SuppressWarnings("deprecation")
 /**
@@ -60,7 +59,6 @@ public class HttpMethod {
 	
 	private CloseableHttpClient client = new DefaultHttpClient();
 	private BasicCookieStore cookieStore = new BasicCookieStore();
-	private static final Logger logger = LoggerFactory.getLogger("HttpLogger");
 	private HttpGet get = null;
 	private HttpPost post = null;
 	private static int retryCount = 4;
@@ -87,7 +85,7 @@ public class HttpMethod {
 		this.identidy = identidy;
 		this.config.setAuthenticationEnabled(true);
 		this.config.setConnectTimeout(30000);
-		this.config.setSocketTimeout(30000);
+		this.config.setSocketTimeout(10000);
 		this.clientBuilder = HttpClientBuilder.create();
 		this.clientBuilder.setMaxConnTotal(100);
 		this.clientBuilder.setMaxConnPerRoute(500);
@@ -131,7 +129,7 @@ public class HttpMethod {
 			if (proxyMap == null) {
 				proxyMap = new ConcurrentHashMap<String, List<HttpHost>>();
 			}
-			logger.info("[HttpThings Proxy Boxs Init Complment]");
+			LoggerUtil.HttpInfoLog("[HttpThings Proxy Boxs Init Complment]");
 			timeStemp = nowTimeStemp;
 		}
 		return "[HttpThings Proxy Boxs Init Complment]";
@@ -210,7 +208,7 @@ public class HttpMethod {
 			if (retryIndex >= retryCount) {
 				this.get.abort();
 				this.get.releaseConnection();
-				logger.info("[数据获取][url=" + url + "][status=" + this.getStatus + "][exception=" + this.getException + "]");
+				LoggerUtil.HttpInfoLog("[数据获取][url=" + url + "][status=" + this.getStatus + "][exception=" + this.getException + "]");
 				break;
 			}
 			if (proxySet != null) {
@@ -224,9 +222,9 @@ public class HttpMethod {
 				}
 			}
 			if (proxy == null) {
-				logger.info("[" + url + "][第" + retryIndex + "次抓取尝试]");
+				LoggerUtil.HttpInfoLog("[" + url + "][第" + retryIndex + "次抓取尝试]");
 			} else {
-				logger.info("[" + url + "][第" + retryIndex + "次抓取尝试][proxy " + proxy.toHostString() + "]");
+				LoggerUtil.HttpInfoLog("[" + url + "][第" + retryIndex + "次抓取尝试][proxy " + proxy.toHostString() + "]");
 			}
 			try {
 				URI uri = new URI(url);
@@ -323,7 +321,7 @@ public class HttpMethod {
 				this.get.releaseConnection();
 			}
 			if ((this.getStatus == 200) && (!StringUtils.isBlank(this.getHtml))) {
-				logger.debug("[数据获取][url=" + url + "][html=" + this.getHtml + "]");
+				LoggerUtil.HttpDebugLog("[数据获取][url=" + url + "][html=" + this.getHtml + "]");
 				break;
 			} else {
 				this.getException = "response_null";
@@ -378,7 +376,7 @@ public class HttpMethod {
 			if (retryIndex >= retryCount) {
 				this.post.abort();
 				this.post.releaseConnection();
-				logger.debug("[数据获取][url=" + url + "][body=" + body + "][status=" + this.postStatus + "][exception=" + this.postException + "]");
+				LoggerUtil.HttpDebugLog("[数据获取][url=" + url + "][body=" + body + "][status=" + this.postStatus + "][exception=" + this.postException + "]");
 				break;
 			}
 			if (proxySet != null) {
@@ -391,9 +389,9 @@ public class HttpMethod {
 				}
 			}
 			if (proxy == null) {
-				logger.info("[" + url + "][第" + retryIndex + "次抓取尝试]");
+				LoggerUtil.HttpInfoLog("[" + url + "][第" + retryIndex + "次抓取尝试]");
 			} else {
-				logger.info("[" + url + "][第" + retryIndex + "次抓取尝试][proxy " + proxy.toHostString() + "]");
+				LoggerUtil.HttpInfoLog("[" + url + "][第" + retryIndex + "次抓取尝试][proxy " + proxy.toHostString() + "]");
 			}
 			try {
 				URI uri = new URI(url);
@@ -494,7 +492,7 @@ public class HttpMethod {
 				this.post.releaseConnection();
 			}
 			if ((this.postStatus == 200) && (!StringUtils.isBlank(this.postHtml))) {
-				logger.debug("[数据获取][url=" + url + "][body=" + body + "][html=" + this.postHtml + "]");
+				LoggerUtil.HttpDebugLog("[数据获取][url=" + url + "][body=" + body + "][html=" + this.postHtml + "]");
 				break;
 			} else {
 				this.postException = "response null";
@@ -529,10 +527,10 @@ public class HttpMethod {
 			if (retryIndex >= retryCount) {
 				this.post.abort();
 				this.post.releaseConnection();
-				logger.debug("[数据获取][url=" + url + "][body=" + params + "][status=" + this.postStatus + "][exception=" + this.postException + "]");
+				LoggerUtil.HttpDebugLog("[数据获取][url=" + url + "][body=" + params + "][status=" + this.postStatus + "][exception=" + this.postException + "]");
 				break;
 			}
-			logger.info("[" + url + "][第" + retryIndex + "次抓取尝试]");
+			LoggerUtil.HttpInfoLog("[" + url + "][第" + retryIndex + "次抓取尝试]");
 			try {
 				URI uri = new URI(url);
 				this.post.setURI(uri);
@@ -597,7 +595,7 @@ public class HttpMethod {
 				this.post.releaseConnection();
 			}
 			if ((this.postStatus == 200) && (!StringUtils.isBlank(this.postHtml))) {
-				logger.debug("[数据获取][url=" + url + "][body=" + params + "][html=" + this.postHtml + "]");
+				LoggerUtil.HttpDebugLog("[数据获取][url=" + url + "][body=" + params + "][html=" + this.postHtml + "]");
 				break;
 			} else {
 				this.postException = "response null";
@@ -630,10 +628,10 @@ public class HttpMethod {
 			if (retryIndex >= retryCount) {
 				this.get.abort();
 				this.get.releaseConnection();
-				logger.debug("[数据获取][url=" + url + "][status=" + this.postStatus + "][exception=" + this.postException + "]");
+				LoggerUtil.HttpDebugLog("[数据获取][url=" + url + "][status=" + this.postStatus + "][exception=" + this.postException + "]");
 				break;
 			}
-			logger.info("[" + url + "][第" + retryIndex + "次抓取尝试]");
+			LoggerUtil.HttpInfoLog("[" + url + "][第" + retryIndex + "次抓取尝试]");
 			try {
 				URI uri = new URI(url);
 				this.get.setURI(uri);
@@ -689,7 +687,7 @@ public class HttpMethod {
 				this.get.releaseConnection();
 			}
 			if ((this.getStatus == 200) && (!StringUtils.isBlank(this.getHtml))) {
-				logger.debug("[数据获取][url=" + url + "][html=" + this.postHtml + "]");
+				LoggerUtil.HttpDebugLog("[数据获取][url=" + url + "][html=" + this.postHtml + "]");
 				break;
 			} else {
 				this.getException = "response null";
@@ -707,10 +705,10 @@ public class HttpMethod {
 			if (retryIndex >= retryCount) {
 				this.get.abort();
 				this.get.releaseConnection();
-				logger.debug("[数据获取][url=" + url + "][status=" + this.postStatus + "][exception=" + this.postException + "]");
+				LoggerUtil.HttpDebugLog("[数据获取][url=" + url + "][status=" + this.postStatus + "][exception=" + this.postException + "]");
 				break;
 			}
-			logger.info("[" + url + "][第" + retryIndex + "次抓取尝试]");
+			LoggerUtil.HttpInfoLog("[" + url + "][第" + retryIndex + "次抓取尝试]");
 			try {
 				URI uri = new URI(url);
 				this.get.setURI(uri);
@@ -766,7 +764,7 @@ public class HttpMethod {
 				this.get.releaseConnection();
 			}
 			if ((this.getStatus == 200) && (!StringUtils.isBlank(this.getHtml))) {
-				logger.debug("[数据获取][url=" + url + "][html=" + this.postHtml + "]");
+				LoggerUtil.HttpDebugLog("[数据获取][url=" + url + "][html=" + this.postHtml + "]");
 				break;
 			} else {
 				this.getException = "response null";
@@ -796,7 +794,7 @@ public class HttpMethod {
 			if (retryIndex >= retryCount) {
 				this.get.abort();
 				this.get.releaseConnection();
-				logger.debug("[图片数据获取][url=" + url + "][status=" + this.getStatus + "][exception=" + this.getException + "]");
+				LoggerUtil.HttpDebugLog("[图片数据获取][url=" + url + "][status=" + this.getStatus + "][exception=" + this.getException + "]");
 				break;
 			}
 			if (proxySet != null) {
@@ -809,9 +807,9 @@ public class HttpMethod {
 				}
 			}
 			if (proxy == null) {
-				logger.info("[图片数据获取][" + url + "][第" + retryIndex + "次抓取尝试]");
+				LoggerUtil.HttpInfoLog("[图片数据获取][" + url + "][第" + retryIndex + "次抓取尝试]");
 			} else {
-				logger.info("[图片数据获取][" + url + "][第" + retryIndex + "次抓取尝试][proxy " + proxy.toHostString() + "]");
+				LoggerUtil.HttpInfoLog("[图片数据获取][" + url + "][第" + retryIndex + "次抓取尝试][proxy " + proxy.toHostString() + "]");
 			}
 			try {
 				URI uri = new URI(url);
@@ -870,7 +868,7 @@ public class HttpMethod {
 				this.get.releaseConnection();
 			}
 			if (!StringUtils.equals("txt", imageType) && imageDataArr != null) {
-				logger.debug("[数据获取][url=" + url + "][html=" + this.getHtml + "]");
+				LoggerUtil.HttpDebugLog("[数据获取][url=" + url + "][html=" + this.getHtml + "]");
 				break;
 			} else {
 				this.getException = "response_null";

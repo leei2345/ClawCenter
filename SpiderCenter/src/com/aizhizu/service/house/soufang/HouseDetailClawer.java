@@ -1,14 +1,5 @@
 package com.aizhizu.service.house.soufang;
 
-import com.aizhizu.bean.HouseChuzuEntity;
-import com.aizhizu.http.HttpMethod;
-import com.aizhizu.http.HttpResponseConfig;
-import com.aizhizu.service.Analyst;
-import com.aizhizu.service.BaseClawer;
-import com.aizhizu.service.house.PlotDataMatcher;
-import com.aizhizu.service.house.UnmatchHouseDataStorer;
-import com.aizhizu.util.CountDownLatchUtils;
-
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -21,7 +12,23 @@ import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
-public class HouseDetailClawer extends BaseClawer {
+import com.aizhizu.bean.HouseChuzuEntity;
+import com.aizhizu.http.HttpMethod;
+import com.aizhizu.http.HttpResponseConfig;
+import com.aizhizu.service.Analyst;
+import com.aizhizu.service.BaseClawer;
+import com.aizhizu.service.house.BaseHouseDetailHandler;
+import com.aizhizu.service.house.PlotDataMatcher;
+import com.aizhizu.service.house.UnmatchHouseDataStorer;
+import com.aizhizu.util.CountDownLatchUtils;
+import com.aizhizu.util.LoggerUtil;
+
+/**
+ * 搜房网
+ * @author leei
+ *
+ */
+public class HouseDetailClawer extends BaseHouseDetailHandler {
 	private static String identidy = "web_soufang";
 	private String url;
 
@@ -31,6 +38,14 @@ public class HouseDetailClawer extends BaseClawer {
 	}
 
 	public void run() {
+		try {
+			Implement();
+		} catch (Exception e) {
+			LoggerUtil.ClawerLog("[" + identidy + "][got house detail fail][" + e.getMessage() + "]");
+			return;
+		}
+		HouseChuzuEntity entity = (HouseChuzuEntity) this.getEntity();
+		this.DealWithChuzuData(entity);
 	}
 
 	protected void init() {

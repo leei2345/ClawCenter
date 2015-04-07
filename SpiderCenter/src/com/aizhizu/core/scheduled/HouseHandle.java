@@ -1,7 +1,7 @@
 package com.aizhizu.core.scheduled;
 
 import com.aizhizu.core.BaseHandler;
-import com.aizhizu.service.house.BaseHouseListClawer;
+import com.aizhizu.service.house.BaseHouseClawer;
 import com.aizhizu.util.ConfigUtil;
 import com.aizhizu.util.CountDownLatchUtils;
 
@@ -60,9 +60,9 @@ public class HouseHandle extends BaseHandler {
 		} catch (MalformedURLException e) {
 			e.printStackTrace();
 		}
-		Package p = BaseHouseListClawer.class.getPackage();
+		Package p = BaseHouseClawer.class.getPackage();
 		String packageName = p.getName();
-		String classPath = BaseHouseListClawer.class.getResource("").getPath();
+		String classPath = BaseHouseClawer.class.getResource("").getPath();
 		File classPathDir = new File(classPath);
 		File[] files = classPathDir.listFiles();
 		List<File> houseWrapperFileList = new ArrayList<File>();
@@ -76,19 +76,21 @@ public class HouseHandle extends BaseHandler {
 		List<String> list = new ArrayList<String>();
 //		list.add("ganji");
 //		list.add("wuba");
+//		list.add("anjuke");
 		for (File file : houseWrapperFileList) {
 			String dirName = file.getName();
+			String identidy = "web_" + dirName;
 			if (list.contains(dirName)) {
 				System.out.println(dirName);
 				continue;
 			}
 			try {
-				Class clazz = loader.loadClass(packageName + "." + dirName + ".HouseListClawer");
-				Class[] parameterTypes = { String.class, CountDownLatchUtils.class };
-				Object[] params = { dataFilePath, listCdl };
+				Class clazz = loader.loadClass(packageName + ".BaseHouseListHandler");
+				Class[] parameterTypes = { String.class, String.class, CountDownLatchUtils.class};
+				Object[] params = { identidy, dataFilePath, listCdl };
 				Constructor con = clazz.getConstructor(parameterTypes);
 				Object instance = con.newInstance(params);
-				BaseHouseListClawer clawer = (BaseHouseListClawer) instance;
+				BaseHouseClawer clawer = (BaseHouseClawer) instance;
 				this.threadPool.execute(clawer);
 			} catch (ClassNotFoundException e) {
 				e.printStackTrace();

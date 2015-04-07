@@ -9,6 +9,7 @@
 //import org.jsoup.nodes.Document;
 //import org.jsoup.nodes.Element;
 //
+//import com.aizhizu.bean.UserEntity;
 //import com.aizhizu.http.HttpMethod;
 //import com.aizhizu.http.HttpResponseConfig;
 //import com.aizhizu.http.Method;
@@ -19,41 +20,23 @@
 // * 初始化登陆状态
 // * 
 // */
-//public class InitHttpClient {
+//public class LoginHandle {
 //	
-//	private static final String identidy = "web_ganji";
+//	private UserEntity user;
+//	private BasicCookieStore cookieStore;
 //	private static final String BaseUrl = "https://passport.ganji.com/login.php?next=http%3A%2F%2Fbj.ganji.com%2Ffang1%2Fa1%2F";
 //	private static Pattern scriptPattern = Pattern.compile("__hash__ = '(.*?)';");
-//	private static BasicCookieStore cookieStore = null;
-//	public static volatile boolean InitHttpClientStat = false;
-//	private static long timeStemp = 0l;
-//	private static final long intervalTime = 1200000;
-//	private static UserEntity u;
-//
-//	public static boolean isInitHttpClientStat() {
-//		return InitHttpClientStat;
-//	}
-//	
-//	public static void setInitHttpClientStat(boolean initHttpClientStat) {
-//		InitHttpClientStat = initHttpClientStat;
-//	}
-//	
-//	public static long getTimeStemp() {
-//		return timeStemp;
-//	}
-//	
-//	public static void setTimeStemp(long timeStemp) {
-//		InitHttpClient.timeStemp = timeStemp;
-//	}
 //		
-//	public static void Login () {
-//		InitHttpClientStat = false;
-//		cookieStore = new BasicCookieStore();
-//		u = UserCenter.GetNextUser();
-//		String user = u.getName();
-//		String passwd = u.getPasswd();
-//		
-//		HttpMethod method = new HttpMethod(identidy);
+//	public LoginHandle (UserEntity user) {
+//		this.user = user;
+//	}
+//	
+//	public BasicCookieStore Login () {
+//		String userName = user.getName();
+//		String passwd = user.getPasswd();
+//		int count = user.getCount();
+//		LoggerUtil.ClawerLog("[Login][" + userName + "][" + count + "][Step 1][Get User][Done]");
+//		HttpMethod method = new HttpMethod("web_ganji");
 //		method.AddHeader(Method.Get, "Host", "passport.ganji.com");
 //		method.AddHeader(Method.Get, "User-Agent", "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:35.0) Gecko/20100101 Firefox/35.0");
 //		method.AddHeader(Method.Get, "Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8");
@@ -76,20 +59,21 @@
 //				}
 //			} catch (Exception e) {
 //				e.printStackTrace();
-//				ResetHttpClientStat(UserStat.Normal);
-//				LoggerUtil.ClawerLog("[" + identidy + "][============STEP ONE FAIL============]");
-//				return;
+//				user.setStat(UserStat.Normal);
+//				UserCenter.SetUserStatusInactive(user);
+//				LoggerUtil.ClawerLog("[Login][" + userName + "][" + count + "][Step 2][Get HashCode][Fail]");
+//				return null;
 //			}
-//			LoggerUtil.ClawerLog("[" + identidy + "][============STEP ONE SUCCESS============]");
+//			LoggerUtil.ClawerLog("[Login][" + userName + "][" + count + "][Step 2][Get HashCode][Done]");
 //			if (!StringUtils.isBlank(hash)) {
 //				try {
 //					Thread.sleep(1000);
 //				} catch (InterruptedException e1) {
 //					e1.printStackTrace();
 //				}
-//				String firstGetUrl = "https://passport.ganji.com/login.php?callback=jQuery&username=" + user + "&password=" + passwd + "&checkCode=&setcookie=14&second=&parentfunc=&redirect_in_iframe=&next=http%3A%2F%2Fbj.ganji.com%2Ffang1%2F&__hash__=" + hash + "&_=" + System.currentTimeMillis();
+//				String firstGetUrl = "https://passport.ganji.com/login.php?callback=jQuery&username=" + userName + "&password=" + passwd + "&checkCode=&setcookie=14&second=&parentfunc=&redirect_in_iframe=&next=http%3A%2F%2Fbj.ganji.com%2Ffang1%2F&__hash__=" + hash + "&_=" + System.currentTimeMillis();
 //				BasicCookieStore cookies = method.getCookieStore();
-//				HttpMethod step2Me = new HttpMethod(identidy, cookies);
+//				HttpMethod step2Me = new HttpMethod("web_ganji", cookies);
 //				step2Me.AddHeader(Method.Get, "Referer", BaseUrl);
 //				String firstGetHtml = step2Me.GetHtml(firstGetUrl, HttpResponseConfig.ResponseAsString);
 //				try {
@@ -99,44 +83,21 @@
 //					JSONObject firstHtmlObject = JSONObject.parseObject(firstGetHtml);
 //					int user_id = firstHtmlObject.getIntValue("user_id");
 //					if (user_id < 1) {
-//						LoggerUtil.ClawerLog("[" + identidy + "][============STEP TWO FAIL============]");
+//						LoggerUtil.ClawerLog("[Login][" + userName + "][" + count + "][Step 3][User Login][Fail]");
 //					} else {
-//						InitHttpClientStat = true;
 //						cookieStore = step2Me.getCookieStore();
-//						LoggerUtil.ClawerLog("[" + identidy + "][============STEP TWO  SUCCESS============]");
+//						LoggerUtil.ClawerLog("[Login][" + userName + "][" + count + "][Step 3][User Login][Done]");
 //					}
 //				} catch (Exception e) {
-//					LoggerUtil.ClawerLog("[" + identidy + "][============STEP TWO FAIL============]");
-//					ResetHttpClientStat(UserStat.Normal);
-//					return;
-//				}
-//			}
-//		}
-//		timeStemp = System.currentTimeMillis();
-//	}
-//	
-//	public static void ResetHttpClientStat (UserStat stat) {
-//		InitHttpClientStat = false;
-//		cookieStore = new BasicCookieStore();
-//		UserCenter.SetUserStatusInactive(stat);
-//	}
-//	
-//	public static BasicCookieStore GetLoginedHttpClient () {
-//		long now_time = System.currentTimeMillis();
-//		if (now_time - timeStemp > intervalTime) {
-//			InitHttpClientStat = false;
-//		}
-//		if (!InitHttpClientStat) {
-//			synchronized (InitHttpClient.class) {
-//				if (!InitHttpClientStat) {
-//					timeStemp = 0;
-//					Login();
+//					LoggerUtil.ClawerLog("[Login][" + userName + "][" + count + "][Step 3][User Login][Error]");
+//					user.setStat(UserStat.Normal);
+//					UserCenter.SetUserStatusInactive(user);
+//					return null;
 //				}
 //			}
 //		}
 //		return cookieStore;
 //	}
-//	
 //	
 //	public static String printRuntime (long delayTime) {
 //		long min = delayTime/(60*1000);   
@@ -146,9 +107,7 @@
 //	}
 //	
 //	
-//	public static void main(String[] args) {
-////		String url = "http://bj.ganji.com/fang1/1284641292x.htm";
-//		Login();
+//	public static void main(String[] args) {/*
 //		HttpMethod me = new HttpMethod("web_ganji");
 //		String html = me.GetHtml("http://bj.ganji.com/fang1/1414037776x.htm", HttpResponseConfig.ResponseAsStream);
 //		Document doc = Jsoup.parse(html);
@@ -176,7 +135,7 @@
 //		
 ////		String text = doc.select("div#contact-phone").text();
 //		System.out.println(sourceImage);
-//	}
+//	*/}
 //	
 //
 //}

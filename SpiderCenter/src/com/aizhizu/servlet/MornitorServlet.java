@@ -1,7 +1,7 @@
 package com.aizhizu.servlet;
 
 import com.aizhizu.bean.HighChartsEntity;
-import com.aizhizu.dao.DBDataReader;
+import com.aizhizu.dao.DataBaseCenter;
 
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -19,12 +19,13 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.FastDateFormat;
+import org.jdiy.core.Ls;
+import org.jdiy.core.Rs;
 
 public class MornitorServlet extends HttpServlet {
 	private static final long serialVersionUID = 1364250816859877382L;
 	private static FastDateFormat sim = FastDateFormat.getInstance("yyyyMMdd");
 
-	@SuppressWarnings("unchecked")
 	protected void doGet(HttpServletRequest req, HttpServletResponse resp)
 			throws ServletException, IOException {
 		String type = req.getParameter("type").trim();
@@ -38,9 +39,9 @@ public class MornitorServlet extends HttpServlet {
 		if (StringUtils.equals("0", type)) {
 			String sql = "select identidy from tb_clawer_mornitor group by identidy";
 			List<String> typeList = new ArrayList<String>();
-			DBDataReader reader = new DBDataReader(sql);
-			List<Map<String, Object>> redList = reader.readAll();
-			for (Map<String, Object> map : redList) {
+			Ls ls = DataBaseCenter.Dao.ls(sql, 0, 0);
+			Rs[] redList = ls.getItems();
+			for (Rs map : redList) {
 				String value = (String) map.get("identidy");
 				if ((!StringUtils.isBlank(value))
 						&& (!StringUtils.equals("null", value.toLowerCase()))) {
@@ -88,21 +89,21 @@ public class MornitorServlet extends HttpServlet {
 			succPercentEntity.put("color", "#89A54E");
 			succPercentEntity.put("type", "spline");
 			succPercentEntity.put("tooltip", "{valueSuffix: ' %'}");
-			DBDataReader reader = new DBDataReader(sql);
-			List<Map<String, Object>> res = reader.readAll();
-			for (Map<String, Object> map : res) {
-				String startTime = (String) map.get("start_time");
+			Ls ls = DataBaseCenter.Dao.ls(sql, 0, 0);
+			Rs[] res = ls.getItems();
+			for (Rs map : res) {
+				String startTime = map.get("start_time");
 				startTime = startTime.split(":")[0];
 				int startTimeHour = Integer.parseInt(startTime);
 				if ((avgTimeDataMap.get(Integer.valueOf(startTimeHour)) != null) && (((Float) avgTimeDataMap.get(Integer.valueOf(startTimeHour))).floatValue() > 0.0F)) {
 					continue;
 				}
-				long usedTime = ((Long) map.get("avg_time")).longValue();
+				long usedTime = map.getLong("avg_time");
 				BigDecimal usedTimeBig = new BigDecimal(usedTime);
 				float usedMinute = usedTimeBig.divide(new BigDecimal(60000), 2, 4).floatValue();
 				avgTimeDataMap.put(Integer.valueOf(startTimeHour), Float.valueOf(usedMinute));
 
-				Float succPercentF = Float.valueOf(((Float) map .get("succ_percent")).floatValue() * 100.0F);
+				Float succPercentF = Float.valueOf(map .getFloat("succ_percent") * 100.0F);
 				int succPercent = succPercentF.intValue();
 				succPercentDataMap.put(Integer.valueOf(startTimeHour), Integer.valueOf(succPercent));
 			}

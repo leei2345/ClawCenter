@@ -1,12 +1,12 @@
 package com.aizhizu.dao;
 
-import java.util.List;
-import java.util.Map;
 import java.util.ResourceBundle;
 import java.util.Set;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.jdiy.core.Ls;
+import org.jdiy.core.Rs;
+
+import com.aizhizu.util.LoggerUtil;
 
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
@@ -14,10 +14,9 @@ import redis.clients.jedis.JedisPoolConfig;
 
 public class Redis {
 	private JedisPool jedisPool;
-	private static Logger logger = LoggerFactory.getLogger("ClawerLogger");
 
 	private Redis() {
-		logger.info("Redis Initializing from config.properties.......");
+		LoggerUtil.ClawerLog("Redis Initializing from config.properties.......");
 		ResourceBundle config = ResourceBundle.getBundle("data");
 		JedisPoolConfig jedisPoolConfig = new JedisPoolConfig();
 		jedisPoolConfig.setMaxActive(Integer.valueOf(
@@ -55,19 +54,17 @@ public class Redis {
 		this.jedisPool.returnResource(jedis);
 	}
 
-	@SuppressWarnings("unchecked")
 	public void refreshPlotMap() {
 		String sql = "select plot,area,district,yx from tb_plot";
-		DBDataReader reader = new DBDataReader(sql);
-		List<Map<String, Object>> list = reader.readAll();
+		Ls ls = DataBaseCenter.Dao.ls(sql, 0, 0);
+		Rs[] items = ls.getItems();
 		Jedis jedis = (Jedis) this.jedisPool.getResource();
-		for (Map<String, Object> map : list) {
-			String plot = (String) map.get("plot");
-			String area = (String) map.get("area");
-			String district = (String) map.get("district");
-			String yx = (String) map.get("yx");
-			String value = area.trim() + "|" + district.trim() + "|"
-					+ yx.trim();
+		for (Rs map : items) {
+			String plot = map.get("plot");
+			String area = map.get("area");
+			String district = map.get("district");
+			String yx = map.get("yx");
+			String value = area.trim() + "|" + district.trim() + "|" + yx.trim();
 			jedis.hset("plot", plot.trim(), value);
 		}
 		this.jedisPool.returnResource(jedis);
@@ -90,12 +87,14 @@ public class Redis {
 		System.out.println(setValues);
 	}
 
-	public static void main(String[] args) {
-		Redis r = getInstance();
-		r.test();
-	}
 
 	private static class RedisContainer {
 		private static Redis instance = new Redis();
 	}
+	
+	public static void main(String[] args) {
+		Redis r = getInstance();
+		r.test();
+	}
+	
 }

@@ -1,22 +1,19 @@
 package com.aizhizu.service.house;
 
-import com.aizhizu.http.HttpMethod;
-import com.aizhizu.http.Method;
-import com.aizhizu.service.DigSign;
-
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import com.aizhizu.http.HttpMethod;
+import com.aizhizu.http.Method;
+import com.aizhizu.service.DigSign;
+import com.aizhizu.util.LoggerUtil;
 
 public class ImageOcr {
 	private static String imageTempFilePath = "image_temp/";
 	private static String imageFilePath;
 	private static final int ORCRetryCount = 5;
-	private static Logger logger = LoggerFactory.getLogger("ClawerLogger");
 
 	static {
 		String filePath = ImageOcr.class.getClassLoader().getResource("")
@@ -83,10 +80,10 @@ public class ImageOcr {
 				imageFile.delete();
 			}
 			if (valCode.matches("\\d{4}")) {
-				logger.info("[OCR Image Analyst By " + retryIndex + " Times Success][" + url + "]");
+				LoggerUtil.ClawerLog("[OCR Image Analyst By " + retryIndex + " Times Success][" + url + "]");
 				break;
 			} else {
-				logger.info("[OCR Image Analyst By " + retryIndex + " Times Fail][" + url + "]");
+				LoggerUtil.ClawerLog("[OCR Image Analyst By " + retryIndex + " Times Fail][" + url + "]");
 				continue;
 			}
 		}

@@ -1,64 +1,80 @@
 package com.aizhizu.service.house.ganji;
 
+import java.net.InetAddress;
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.Date;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.commons.lang3.time.FastDateFormat;
+import org.jdiy.core.Ls;
+import org.jdiy.core.Rs;
 
-import com.aizhizu.dao.DBDataReader;
-import com.aizhizu.dao.DBDataWriter;
+import com.aizhizu.bean.UserEntity;
+import com.aizhizu.dao.DataBaseCenter;
+import com.aizhizu.util.LoggerUtil;
 
-@SuppressWarnings("unchecked")
 public class UserCenter {
 	
-	public static Map<String, UserStat> userStatusMap = new HashMap<String, UserStat>();
-	private static List<UserEntity> userList = new ArrayList<UserEntity>();
 	private static AtomicInteger userIndex = new AtomicInteger(0);
-	private static UserEntity inUseUser;
-	private static final Logger logger = LoggerFactory.getLogger("ClawerLogger");
+	private static FastDateFormat sim = FastDateFormat.getInstance("yyyy-MM-dd HH:mm:ss");
+	private static List<UserEntity> userList = new ArrayList<UserEntity>();
+	private static String host;
 	
 	static {
-		Init();
+		ResetStat(1);
 	}
 
-	public static void Init () {
-		String updateSql = "update tb_ganji_user set status=:status where status!=2 and status!=1";
-		Map<String, Integer> updateMap = new HashMap<String, Integer>();
-		updateMap.put("status", 0);
-		DBDataWriter updateWriter = new DBDataWriter(updateSql);
-		updateWriter.writeSingle(updateMap);
+	public static void ResetStat (int code) {
+		InetAddress inet = null;
+		try {
+			inet = InetAddress.getLocalHost();
+		} catch (Exception e) {
+			host = "127.0.0.1";
+		}
+		host = inet.getHostAddress();
+		if (code == 0) {
+			String updateSql = "update tb_ganji_user set status=0 where status!=2 and hostname='" + host + "'";
+			DataBaseCenter.Dao.exec(updateSql);
+		} else {
+			String updateSql = "update tb_ganji_user set status=0 where status!=2 and status!=1 and hostname='" + host + "'";
+			DataBaseCenter.Dao.exec(updateSql);
+		}
 		userList.clear();
-		String sql = "select name,passwd,status from tb_ganji_user";
-		DBDataReader reader = new DBDataReader(sql);
-		List<Map<String, Object>> list = reader.readAll();
-		for (Map<String, Object> map : list) {
-			String name = (String) map.get("name");
-			String passwd = (String) map.get("passwd");
-			int status = (int) map.get("status");
-			if (status == 0) {
-				UserEntity u = new UserEntity(name, passwd);
-				userList.add(u);
-			}
+		String sql = "select name,passwd,status,update_time from tb_ganji_user where hostname='" + host + "'";
+		Ls ls = DataBaseCenter.Dao.ls(sql, 0, 0);
+		Rs[] items = ls.getItems();
+		for (Rs map : items) {
+			String name = map.get("name");
+			String passwd = map.get("passwd");
+			Date date = map.getDate("update_time");
+			String updateTime = sim.format(date);
+			int status = map.getInt("status");
+			UserEntity u = new UserEntity(name, passwd);
+			u.setUpdateTime(updateTime);
 			switch (status) {
 			case 0:
-				userStatusMap.put(name, UserStat.Normal);break;
+				u.setStat(UserStat.Normal);
+				break;
 			case 1:
-				userStatusMap.put(name, UserStat.UseLess);break;
+				u.setStat(UserStat.UseLess);
+				break;
 			case 2:
-				userStatusMap.put(name, UserStat.PasswdError);break;
+				u.setStat(UserStat.PasswdError);
+				break;
 			case 3:
-				userStatusMap.put(name, UserStat.Other);break;
+				u.setStat(UserStat.Other);
+				break;
 			case 4:
-				userStatusMap.put(name, UserStat.OnUse);break;
+				u.setStat(UserStat.OnUse);
+				break;
 			default:
 				break;
 			}
+			userList.add(u);
 		}
-		logger.info("[==============UserCenter Init done==============]");
+		
+		LoggerUtil.ClawerLog("[==============UserCenter Init done==============]");
 	}
 
 	
@@ -68,68 +84,48 @@ public class UserCenter {
 
 	public static UserEntity GetNextUser () {
 		int index = userIndex.get();
-		if (index >= (userList.size() - 1)) {
+		if (index > (userList.size() - 1)) {
 			index = 0;
 			userIndex = new AtomicInteger(index);
+			ResetStat(0);
 		}
-		UserEntity u = userList.get(index);
-		inUseUser = u;
-		userIndex.addAndGet(1);
-		userStatusMap.put(u.getName(), UserStat.OnUse);
-		logger.info("[==============UserCenter Update OnUse Done][============" + u.getName() + "============]");
+		UserEntity u = null;
+		for (; index < userList.size();) {
+			u = userList.get(index);
+			int count = u.getCount();
+			UserStat s = u.getStat();
+			if (count >= 10 || (!s.equals(UserStat.Normal) && !s.equals(UserStat.OnUse))) {
+				index++;
+				userIndex = new AtomicInteger(index);
+				continue;
+			}
+			u.addCount(1);
+			u.setStat(UserStat.OnUse);
+			break;
+		}
+		LoggerUtil.ClawerLog("[==============UserCenter Update OnUse Done][============" + u.getName() + "============]");
 		return u;
 	}
 	
-//	public static void SetUserStatusActive (UserEntity u) {
-//		String name = u.getName();
-//		userStatusMap.put(name, "使用");
-//	}
-	
-	public static void SetUserStatusInactive (UserStat stat) {
-		String name = inUseUser.getName();
+	public static void SetUserStatusInactive (UserEntity user, UserStat stat) {
+		String name = user.getName();
+		user.setStat(stat);
+		if (!stat.equals(UserStat.Normal)) {
+			user.setCookie(null);
+		}
 		int statusCode = stat.getStatusCode();
-		String sql = "update tb_ganji_user  set status=" + statusCode + " where name=:name";
-		Map<String, String> map = new HashMap<String, String>();
-		map.put("name", name);
-		DBDataWriter writer = new DBDataWriter(sql);
-		writer.writeSingle(map);
-		userStatusMap.put(name, stat);
-		logger.info("[============UserCenter Update UserStat " + stat.getStatus() + " Done============][============" + name + "============]");
+		String sql = "update tb_ganji_user  set status=" + statusCode + ",update_time=now() where name='" + name + "'";
+		DataBaseCenter.Dao.exec(sql);
+		user.setUpdateTime(sim.format(new Date()));
+		LoggerUtil.ClawerLog("[============UserCenter Update UserStat " + stat.getStatus() + " Done============][============" + name + "============]");
 	}
 	
-	public Map<String, UserStat> GetUserStatMap () {
-		return userStatusMap;
+	public static List<UserEntity> GetUserStatMap () {
+		return userList;
 	}
 	
 	public static void main(String[] args) {
-		 String str = "make in \u4e2d\u56fd";  
-		 System.out.println(str);
-	}
-	
-}
-
-
-class UserEntity {
-	
-	private String name;
-	private String passwd;
-	
-	public UserEntity (String name, String passwd) {
-		this.name = name;
-		this.passwd = passwd;
-	}
-	
-	public String getName() {
-		return name;
-	}
-	public void setName(String name) {
-		this.name = name;
-	}
-	public String getPasswd() {
-		return passwd;
-	}
-	public void setPasswd(String passwd) {
-		this.passwd = passwd;
+		UserCenter.ResetStat(0);
 	}
 	
 }

@@ -41,6 +41,7 @@ public class HttpClientUtil {
 	 *            解码字符集,解析响应数据时用之,其为null时默认采用UTF-8解码
 	 * @return 远程主机响应正文
 	 */
+	@SuppressWarnings("resource")
 	public static String sendPostRequest(String reqURL,
 			Map<String, String> params, String encodeCharset,
 			String decodeCharset) {
@@ -86,6 +87,7 @@ public class HttpClientUtil {
 	 *            解码字符集,解析响应数据时用之,其为null时默认采用UTF-8解码
 	 * @return 远程主机响应正文
 	 */
+	@SuppressWarnings("resource")
 	public static String sendPostRequest(String reqURL,
 			Map<String, String> params, Map<String, File> files,
 			String decodeCharset) {

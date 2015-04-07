@@ -1,9 +1,5 @@
 package com.aizhizu.service.house;
 
-import com.aizhizu.bean.BaseHouseEntity;
-import com.aizhizu.bean.HouseChuzuEntity;
-import com.alibaba.fastjson.JSONObject;
-
 import java.io.IOException;
 import java.net.SocketTimeoutException;
 import java.net.URI;
@@ -26,8 +22,11 @@ import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.util.EntityUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+
+import com.aizhizu.bean.BaseHouseEntity;
+import com.aizhizu.bean.HouseChuzuEntity;
+import com.aizhizu.util.LoggerUtil;
+import com.alibaba.fastjson.JSONObject;
 
 @SuppressWarnings("deprecation")
 public class DataPusher implements Runnable {
@@ -35,7 +34,6 @@ public class DataPusher implements Runnable {
 	private static CloseableHttpClient client = new DefaultHttpClient();
 	private static RequestConfig.Builder config = RequestConfig.custom();
 	private static HttpClientBuilder clientBuilder = HttpClientBuilder.create();
-	private static final Logger logger = LoggerFactory.getLogger("ClawerLogger");
 	private String url;
 
 	static {
@@ -93,13 +91,13 @@ public class DataPusher implements Runnable {
 			JSONObject statusObject = respObject.getJSONObject("status");
 			int code = statusObject.getIntValue("code");
 			String mes = statusObject.getString("msg");
-			if (code == 200)
-				logger.info("[数据推送成功][source_url=" + this.house.getUrl() + "][target=" + url + "]");
-			else
-				logger.info("[数据推送失败][source_url=" + this.house.getUrl()+ "][mes=" + mes + "][target=" + url + "]");
+			if (code == 200) {
+				LoggerUtil.PushLog("[数据推送成功][source_url=" + this.house.getUrl() + "][target=" + url + "]");
+			} else {
+				LoggerUtil.PushLog("[数据推送失败][source_url=" + this.house.getUrl()+ "][mes=" + mes + "][target=" + url + "]");
+			}
 		} catch (Exception e) {
-			e.printStackTrace();
-			logger.info("[数据推送错误][source_url=" + this.house.getUrl() + "][target=" + url + "][response=" + response + "]");
+			LoggerUtil.PushLog("[数据推送错误][source_url=" + this.house.getUrl() + "][target=" + url + "][response=" + response + "]");
 		}
 	}
 	
@@ -143,7 +141,7 @@ public class DataPusher implements Runnable {
 			post.releaseConnection();
 		}
 		if (postStatus != 200) {
-			logger.info("[接口数据推送失败][source_url=" + this.house.getUrl()	+ "][excption=" + exception + "]");
+			LoggerUtil.PushLog("[接口数据推送失败][source_url=" + this.house.getUrl()	+ "][excption=" + exception + "]");
 		}
 		return (String) html;
 	}
