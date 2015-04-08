@@ -67,9 +67,9 @@ public class HouseHandle extends BaseHandler {
 			}
 		}
 		int houseWrapperFileListSize = houseWrapperFileList.size();
-		CountDownLatchUtils wrapperCdl = new CountDownLatchUtils(3);
+		CountDownLatchUtils wrapperCdl = new CountDownLatchUtils(houseWrapperFileListSize);
 		List<String> list = new ArrayList<String>();
-		list.add("ganji");
+//		list.add("soufang");
 //		list.add("wuba");
 //		list.add("anjuke");
 		for (File file : houseWrapperFileList) {
@@ -107,7 +107,7 @@ public class HouseHandle extends BaseHandler {
 //			}
 		}
 		try {
-			wrapperCdl.await();
+			wrapperCdl.await(7160000);
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 		}

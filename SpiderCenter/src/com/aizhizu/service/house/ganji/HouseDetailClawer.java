@@ -159,8 +159,9 @@ public class HouseDetailClawer extends BaseHouseDetailHandler {
 			user.addCount(-1);
 		}
 		String phoneUrl = "";
-		if (!phonePart.contains("*")) {
+		if (!phonePart.contains("*") || !phonePart.startsWith("1")) {
 			phoneNum = phonePart;
+			user.addCount(-1);
 		} else  if (clawPhoneNum) {
 			phoneNum = phonePart;
 			String sourceImageUrl = imageUrl.replace("@@", fphoneStr).replace("##",ca_id).replace("$$", puid);
@@ -230,6 +231,8 @@ public class HouseDetailClawer extends BaseHouseDetailHandler {
 					}
 				} catch (Exception e) {
 				}
+			} else {
+				user.addCount(-1);
 			}
 		} else {
 			phoneNum = phonePart;
@@ -391,7 +394,7 @@ public class HouseDetailClawer extends BaseHouseDetailHandler {
 //		System.out.println(imageUrl);
 		BaseClawer b = new HouseDetailClawer(new CountDownLatchUtils(1));
 		Vector<String> v = new Vector<String>();
-		v.add("http://bj.ganji.com/fang1/1441832596x.htm");
+		v.add("http://bj.ganji.com/fang3/1473345851x.htm");
 		b.setBox(v);
 		b.Implement();
 		Object o = b.getEntity();

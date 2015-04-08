@@ -32,6 +32,9 @@ public class UserCenter {
 			host = "10.172.252.245";
 		}
 		host = inet.getHostAddress();
+		
+//		host = "10.172.252.245";
+		
 		if (code == 0) {
 			String updateSql = "update tb_ganji_user set status=0 where status!=2 and hostname='" + host + "'";
 			DataBaseCenter.Dao.exec(updateSql);
@@ -80,7 +83,7 @@ public class UserCenter {
 		return userList.size();
 	}
 
-	public static UserEntity GetNextUser () {
+	public static synchronized UserEntity GetNextUser () {
 		int index = userIndex.get();
 		if (index > (userList.size() - 1)) {
 			index = 0;

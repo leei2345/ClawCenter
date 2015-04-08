@@ -126,7 +126,7 @@ public class HouseDetailClawer extends BaseHouseDetailHandler {
 		String phoneNum = "";
 		String phoneImageUrl = "";
 		boolean fullPhoneNum = false;
-		if (!phonePart.contains("*")) {
+		if (!phonePart.contains("*") || !phonePart.startsWith("1")) {
 			phoneNum = phonePart;
 		} else {
 			phoneNum = phonePart;

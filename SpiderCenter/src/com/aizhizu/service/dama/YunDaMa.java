@@ -124,10 +124,7 @@ in:				for (int loopIndex = 1; loopIndex <= 30; loopIndex++) {
 				continue;
 			}
 			phoneNumStr = phoneNumStr.replace("-", "").replace("-", "");
-			if (!StringUtils.isBlank(phoneNumStr) && !phoneNumStr.startsWith("1") && !phoneNumStr.contains("看不清") && !phoneNumStr.contains("U")) {
-				LoggerUtil.HttpInfoLog("[" + fileName + "][第" + retryIndex + "次打码结束][" + phoneNumStr + "]");
-				break;
-			} else if (phoneNumStr.matches("\\d{11}")) {
+			if (phoneNumStr.matches("\\d{11}")) {
 				phoneNumber = phoneNumStr;
 				LoggerUtil.HttpInfoLog("[" + fileName + "][第" + retryIndex + "次打码成功][" + phoneNumber + "]");
 				break;

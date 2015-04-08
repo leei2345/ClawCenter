@@ -1,11 +1,11 @@
 package com.aizhizu.dao;
 
-import java.util.ResourceBundle;
 import java.util.Set;
 
 import org.jdiy.core.Ls;
 import org.jdiy.core.Rs;
 
+import com.aizhizu.util.ConfigUtil;
 import com.aizhizu.util.LoggerUtil;
 
 import redis.clients.jedis.Jedis;
@@ -17,22 +17,22 @@ public class Redis {
 
 	private Redis() {
 		LoggerUtil.ClawerLog("Redis Initializing from config.properties.......");
-		ResourceBundle config = ResourceBundle.getBundle("data");
+//		ResourceBundle config = ResourceBundle.getBundle("data");
 		JedisPoolConfig jedisPoolConfig = new JedisPoolConfig();
 		jedisPoolConfig.setMaxActive(Integer.valueOf(
-				config.getString("redis.pool.maxActive")).intValue());
+				ConfigUtil.getString("redis.pool.maxActive")).intValue());
 		jedisPoolConfig.setMaxIdle(Integer.valueOf(
-				config.getString("redis.pool.maxIdle")).intValue());
+				ConfigUtil.getString("redis.pool.maxIdle")).intValue());
 		jedisPoolConfig.setMaxWait(Integer.valueOf(
-				config.getString("redis.pool.maxWait")).intValue());
+				ConfigUtil.getString("redis.pool.maxWait")).intValue());
 		jedisPoolConfig.setTestOnBorrow(Boolean.valueOf(
-				config.getString("redis.pool.testOnBorrow")).booleanValue());
+				ConfigUtil.getString("redis.pool.testOnBorrow")).booleanValue());
 		jedisPoolConfig.setTestOnReturn(Boolean.valueOf(
-				config.getString("redis.pool.testOnReturn")).booleanValue());
+				ConfigUtil.getString("redis.pool.testOnReturn")).booleanValue());
 		this.jedisPool = new JedisPool(jedisPoolConfig,
-				config.getString("redis.ip"), Integer.valueOf(
-						config.getString("redis.port")).intValue(), Integer
-						.valueOf(config.getString("redis.timeout")).intValue(),
+				ConfigUtil.getString("redis.ip"), Integer.valueOf(
+						ConfigUtil.getString("redis.port")).intValue(), Integer
+						.valueOf(ConfigUtil.getString("redis.timeout")).intValue(),
 				null, 1);
 	}
 
