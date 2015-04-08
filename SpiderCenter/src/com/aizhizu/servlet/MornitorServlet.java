@@ -37,7 +37,7 @@ public class MornitorServlet extends HttpServlet {
 			grads = "0";
 		}
 		if (StringUtils.equals("0", type)) {
-			String sql = "select identidy from tb_clawer_mornitor group by identidy";
+			String sql = "select identidy from tb_mornitor group by identidy";
 			List<String> typeList = new ArrayList<String>();
 			Ls ls = DataBaseCenter.Dao.ls(sql, 0, 0);
 			Rs[] redList = ls.getItems();

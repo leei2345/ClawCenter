@@ -67,11 +67,11 @@ public class HouseHandle extends BaseHandler {
 			}
 		}
 		int houseWrapperFileListSize = houseWrapperFileList.size();
-		CountDownLatchUtils wrapperCdl = new CountDownLatchUtils(houseWrapperFileListSize);
+		CountDownLatchUtils wrapperCdl = new CountDownLatchUtils(3);
 		List<String> list = new ArrayList<String>();
-		list.add("soufang");
-		list.add("wuba");
-		list.add("anjuke");
+		list.add("ganji");
+//		list.add("wuba");
+//		list.add("anjuke");
 		for (File file : houseWrapperFileList) {
 			String dirName = file.getName();
 			String identidy = "web_" + dirName;

@@ -1,5 +1,4 @@
 <%@page import="com.aizhizu.service.house.ganji.UserCenter"%>
-<%@page import="com.aizhizu.service.house.ganji.InitHttpClient"%>
 <%@ page language="java" import="java.util.*" contentType="text/html;charset=UTF-8" pageEncoding="UTF-8" isELIgnored="false"%>
 <html>
 

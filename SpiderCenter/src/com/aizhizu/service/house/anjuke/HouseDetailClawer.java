@@ -43,7 +43,9 @@ public class HouseDetailClawer extends BaseHouseDetailHandler {
 			return;
 		}
 		HouseChuzuEntity entity = (HouseChuzuEntity) this.getEntity();
-		this.DealWithChuzuData(entity);
+		if (entity != null) {
+			this.DealWithChuzuData(entity);
+		}
 	}
 
 	protected void init() {
