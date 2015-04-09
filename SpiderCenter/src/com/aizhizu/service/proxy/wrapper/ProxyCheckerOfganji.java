@@ -8,7 +8,7 @@ import com.aizhizu.service.proxy.BaseProxyChecker;
 
 public class ProxyCheckerOfganji extends BaseProxyChecker {
 	private static String indentidy = "web_ganji";
-	private static String url = "https://passport.ganji.com/login.php?next=http%3A%2F%2Fbj.ganji.com%2Ffang1%2Fa1%2F";
+	private static String url = "http://bj.ganji.com/";
 
 	public ProxyCheckerOfganji() {
 		super(indentidy, url);
@@ -43,7 +43,7 @@ public class ProxyCheckerOfganji extends BaseProxyChecker {
 	}
 	
 	public static void main(String[] args) {
-		HttpHost proxy = new HttpHost("111.161.126.100", 80);
+		HttpHost proxy = new HttpHost("218.92.227.165", 12483);
 		BaseProxyChecker b = new ProxyCheckerOfganji();
 		b.InstallProxyHost(proxy);
 		b.CheckApplicability();

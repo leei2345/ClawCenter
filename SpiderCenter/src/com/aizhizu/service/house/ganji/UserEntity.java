@@ -18,6 +18,7 @@ import com.alibaba.fastjson.JSONObject;
 
 public class UserEntity {
 	
+	private int index;
 	private String name;
 	private String passwd;
 	private String updateTime;
@@ -68,10 +69,22 @@ public class UserEntity {
 		this.passwd = passwd;
 	}
 	
-	public void setStat (UserStat stat) {
-		if (!stat.equals(stat)) {
+	public void setStatOnUse (int type) {
+		if (!UserStat.OnUse.equals(this.stat)) {
 			synchronized (this) {
-				if (!stat.equals(stat)) {
+				if (!UserStat.OnUse.equals(this.stat)) {
+					if (type == 0) {
+						this.stat = UserStat.OnUse;
+					} 
+				}
+			}
+		}
+	}
+	
+	public void setStatNotOnUse (UserStat stat) {
+		if (!stat.equals(this.stat)) {
+			synchronized (this) {
+				if (!stat.equals(this.stat)) {
 					this.stat = stat;
 				}
 			}
@@ -91,6 +104,14 @@ public class UserEntity {
 		useCount.addAndGet(count);
 	}
 	
+	public int getIndex() {
+		return index;
+	}
+
+	public void setIndex(int index) {
+		this.index = index;
+	}
+
 	public void Login () {
 		LoggerUtil.ClawerLog("[Login][" + name + "][" + useCount.get() + "][Step 1][Get User][Done]");
 		HttpMethod method = new HttpMethod("web_ganji");

@@ -55,21 +55,22 @@ public class UserCenter {
 			int status = map.getInt("status");
 			UserEntity u = new UserEntity(name, passwd);
 			u.setUpdateTime(updateTime);
+			u.setIndex(index);
 			switch (status) {
 			case 0:
-				u.setStat(UserStat.Normal);
+				u.setStatNotOnUse(UserStat.Normal);
 				break;
 			case 1:
-				u.setStat(UserStat.UseLess);
+				u.setStatNotOnUse(UserStat.UseLess);
 				break;
 			case 2:
-				u.setStat(UserStat.PasswdError);
+				u.setStatNotOnUse(UserStat.PasswdError);
 				break;
 			case 3:
-				u.setStat(UserStat.Other);
+				u.setStatNotOnUse(UserStat.Other);
 				break;
 			case 4:
-				u.setStat(UserStat.OnUse);
+				u.setStatOnUse(0);
 				break;
 			default:
 				break;
@@ -102,7 +103,8 @@ public class UserCenter {
 				continue;
 			}
 			u.addCount(1);
-			u.setStat(UserStat.OnUse);
+			u.setStatOnUse(1);
+			userMap.put(index, u);
 			break;
 		}
 		if (u != null) {
@@ -113,7 +115,8 @@ public class UserCenter {
 	
 	public static void SetUserStatusInactive (UserEntity user, UserStat stat) {
 		String name = user.getName();
-		user.setStat(stat);
+		user.setStatNotOnUse(stat);
+		int index = user.getIndex();
 		if (!stat.equals(UserStat.Normal)) {
 			user.setCookie(null);
 		}
@@ -121,6 +124,7 @@ public class UserCenter {
 		String sql = "update tb_ganji_user  set status=" + statusCode + ",update_time=now() where name='" + name + "'";
 		DataBaseCenter.Dao.exec(sql);
 		user.setUpdateTime(sim.format(new Date()));
+		userMap.put(index, user);
 		LoggerUtil.ClawerLog("[============UserCenter Update UserStat " + stat.getStatus() + " Done============][============" + name + "============]");
 	}
 	
