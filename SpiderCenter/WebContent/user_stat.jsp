@@ -32,9 +32,10 @@
 	<br/>
 	<table  border="1" id="ganjiloginstat">
 <%
-	List<UserEntity> userStat = UserCenter.GetUserStatMap();
+	Map<Integer, UserEntity> userStat = UserCenter.getUserMap();
 	Map<Integer, List<String[]>> sortMap = new HashMap<Integer, List<String[]>>();
-	for (UserEntity entry : userStat) {
+	for (Entry<Integer, UserEntity> user : userStat.entrySet()) {
+		UserEntity entry = user.getValue();
 		String name = entry.getName();
 		UserStat stat = entry.getStat();
 		int count = entry.getCount();

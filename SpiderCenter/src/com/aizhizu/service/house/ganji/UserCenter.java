@@ -1,9 +1,9 @@
 package com.aizhizu.service.house.ganji;
 
 import java.net.InetAddress;
-import java.util.ArrayList;
 import java.util.Date;
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.commons.lang3.time.FastDateFormat;
@@ -17,7 +17,7 @@ public class UserCenter {
 	
 	private static AtomicInteger userIndex = new AtomicInteger(0);
 	private static FastDateFormat sim = FastDateFormat.getInstance("yyyy-MM-dd HH:mm:ss");
-	private static List<UserEntity> userList = new ArrayList<UserEntity>();
+	private static Map<Integer, UserEntity> userMap = new HashMap<Integer, UserEntity>();
 	private static String host;
 	
 	static {
@@ -42,11 +42,12 @@ public class UserCenter {
 			String updateSql = "update tb_ganji_user set status=0 where status!=2 and status!=1 and hostname='" + host + "'";
 			DataBaseCenter.Dao.exec(updateSql);
 		}
-		userList.clear();
+		userMap.clear();
 		String sql = "select name,passwd,status,update_time from tb_ganji_user where hostname='" + host + "'";
 		Ls ls = DataBaseCenter.Dao.ls(sql, 0, 0);
 		Rs[] items = ls.getItems();
-		for (Rs map : items) {
+		for (int index = 0; index < items.length; index++) {
+			Rs map = items[index];
 			String name = map.get("name");
 			String passwd = map.get("passwd");
 			Date date = map.getDate("update_time");
@@ -73,26 +74,26 @@ public class UserCenter {
 			default:
 				break;
 			}
-			userList.add(u);
+			userMap.put(index, u);
 		}
-		LoggerUtil.ClawerLog("[==============UserCenter Init done==============][UserList Size " + userList.size() + "]");
+		LoggerUtil.ClawerLog("[==============UserCenter Init done==============][UserList Size " + userMap.size() + "]");
 	}
 
 	
 	public static int GetUserCount () {
-		return userList.size();
+		return userMap.size();
 	}
 
 	public static synchronized UserEntity GetNextUser () {
 		int index = userIndex.get();
-		if (index > (userList.size() - 1)) {
+		if (index > (userMap.size() - 1)) {
 			index = 0;
 			userIndex = new AtomicInteger(index);
 			ResetStat(0);
 		}
 		UserEntity u = null;
-		for (; index < userList.size();) {
-			u = userList.get(index);
+		for (; index < userMap.size();) {
+			u = userMap.get(index);
 			int count = u.getCount();
 			UserStat s = u.getStat();
 			if (count >= 10 || (!s.equals(UserStat.Normal) && !s.equals(UserStat.OnUse))) {
@@ -123,10 +124,10 @@ public class UserCenter {
 		LoggerUtil.ClawerLog("[============UserCenter Update UserStat " + stat.getStatus() + " Done============][============" + name + "============]");
 	}
 	
-	public static List<UserEntity> GetUserStatMap () {
-		return userList;
+	public static Map<Integer, UserEntity> getUserMap() {
+		return userMap;
 	}
-	
+
 	public static void main(String[] args) {
 		UserCenter.ResetStat(0);
 	}

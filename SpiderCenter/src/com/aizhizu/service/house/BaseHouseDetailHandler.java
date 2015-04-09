@@ -41,7 +41,7 @@ public abstract class BaseHouseDetailHandler extends BaseHouseClawer {
 		} else {
 			redis.pushNewsUrl(url);
 			String identidy = house.getLineName();
-			LoggerUtil.ClawerLog("[Redis][Add][" + identidy + "][" + lineNum + "]");
+			LoggerUtil.ClawerLog("[Redis][Add][" + identidy + "][" + url + "]");
 		}
 		String filePath = this.fileWriter.getFilePath();
 		File imageFileDir = new File(filePath + "/" + lineNum);
