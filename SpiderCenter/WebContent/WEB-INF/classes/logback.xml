@@ -7,7 +7,7 @@
             <pattern>%d{yyyy-MM-dd HH:mm:ss} %-5level %logger{50} - %msg%n</pattern>   
         </encoder>
     </appender>
-    <appender name="CLAWER_LOG" class="ch.qos.logback.core.rolling.RollingFileAppender">   
+    <!-- <appender name="CLAWER_LOG" class="ch.qos.logback.core.rolling.RollingFileAppender">   
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
             <FileNamePattern>${LOG_HOME}/clawer.%d{yyyy-MM-dd}.log</FileNamePattern> 
             <MaxHistory>10</MaxHistory>
@@ -15,7 +15,7 @@
         <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder"> 
             <pattern>%d{yyyy-MM-dd HH:mm:ss} %-5level%logger{50} - %msg%n</pattern>   
         </encoder> 
-    </appender>
+    </appender> -->
 	<appender name="PROXY_LOG" class="ch.qos.logback.core.rolling.RollingFileAppender">   
 	    <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
 	        <FileNamePattern>${LOG_HOME}/proxy.%d{yyyy-MM-dd}.log</FileNamePattern> 
@@ -53,10 +53,60 @@
     </encoder> 
 	</appender>
 	
+	<appender name="An_log" class="ch.qos.logback.core.rolling.RollingFileAppender">   
+    <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+        <FileNamePattern>${LOG_HOME}/an.%d{yyyy-MM-dd}.log</FileNamePattern> 
+        <MaxHistory>10</MaxHistory>
+    </rollingPolicy>
+    <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder"> 
+        <pattern>%d{yyyy-MM-dd HH:mm:ss} %-5level%logger{50} - %msg%n</pattern>   
+    </encoder> 
+	</appender>
 	
-    <logger name="ClawerLogger" level="INFO" additivity="false">
-    	<appender-ref ref="CLAWER_LOG" />
+	<appender name="Sou_log" class="ch.qos.logback.core.rolling.RollingFileAppender">   
+    <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+        <FileNamePattern>${LOG_HOME}/sou.%d{yyyy-MM-dd}.log</FileNamePattern> 
+        <MaxHistory>10</MaxHistory>
+    </rollingPolicy>
+    <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder"> 
+        <pattern>%d{yyyy-MM-dd HH:mm:ss} %-5level%logger{50} - %msg%n</pattern>   
+    </encoder> 
+	</appender>
+	
+	<appender name="Gan_log" class="ch.qos.logback.core.rolling.RollingFileAppender">   
+    <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+        <FileNamePattern>${LOG_HOME}/gan.%d{yyyy-MM-dd}.log</FileNamePattern> 
+        <MaxHistory>10</MaxHistory>
+    </rollingPolicy>
+    <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder"> 
+        <pattern>%d{yyyy-MM-dd HH:mm:ss} %-5level%logger{50} - %msg%n</pattern>   
+    </encoder> 
+	</appender>
+	
+	<appender name="Wu_log" class="ch.qos.logback.core.rolling.RollingFileAppender">   
+    <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+        <FileNamePattern>${LOG_HOME}/wu.%d{yyyy-MM-dd}.log</FileNamePattern> 
+        <MaxHistory>10</MaxHistory>
+    </rollingPolicy>
+    <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder"> 
+        <pattern>%d{yyyy-MM-dd HH:mm:ss} %-5level%logger{50} - %msg%n</pattern>   
+    </encoder> 
+	</appender>
+	
+	
+    <logger name="GanLogger" level="INFO" additivity="false">
+    	<appender-ref ref="Gan_Log" />
     </logger>
+    <logger name="WuLogger" level="INFO" additivity="false">
+    	<appender-ref ref="Wu_Log" />
+    </logger>
+    <logger name="SouLogger" level="INFO" additivity="false">
+    	<appender-ref ref="Sou_Log" />
+    </logger>
+    <logger name="AnLogger" level="INFO" additivity="false">
+    	<appender-ref ref="An_log" />
+    </logger>
+    
     <logger name="ProxyLogger" level="INFO" additivity="false">
     	<appender-ref ref="PROXY_LOG" />
     </logger>
@@ -71,6 +121,9 @@
     </logger>
     <logger name="DataBaseLogger" level="INFO" additivity="false">
     	<appender-ref ref="DataBase_log" />
+    </logger>
+    <logger name="SystemLogger" level="INFO" additivity="false">
+    	<appender-ref ref="STDOUT" />
     </logger>
     <root level="INFO">
         <appender-ref ref="STDOUT" />
