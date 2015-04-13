@@ -155,13 +155,10 @@ public class HouseDetailClawer extends BaseHouseDetailHandler {
 		boolean clawPhoneNum = false;
 		if (cookie != null && cookie.getCookies().size() != 0) {
 			clawPhoneNum = true;
-		} else {
-			user.addCount(-1);
-		}
+		} 
 		String phoneUrl = "";
 		if (!phonePart.contains("*") || !phonePart.startsWith("1")) {
 			phoneNum = phonePart;
-			user.addCount(-1);
 		} else  if (clawPhoneNum) {
 			phoneNum = phonePart;
 			String sourceImageUrl = imageUrl.replace("@@", fphoneStr).replace("##",ca_id).replace("$$", puid);
@@ -230,10 +227,10 @@ public class HouseDetailClawer extends BaseHouseDetailHandler {
 						imageFile.delete();
 					}
 				} catch (Exception e) {
-				}
-			} else {
-				user.addCount(-1);
-			}
+				}//		list.add("soufang");
+//				list.add("wuba");
+//				list.add("anjuke");
+			} 
 		} else {
 			phoneNum = phonePart;
 		}

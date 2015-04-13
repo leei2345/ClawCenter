@@ -100,7 +100,8 @@ public class UserEntity {
 		return count;
 	}
 	
-	public void addCount (int count) {
+	@SuppressWarnings("unused")
+	private void addCount (int count) {
 		useCount.addAndGet(count);
 	}
 	

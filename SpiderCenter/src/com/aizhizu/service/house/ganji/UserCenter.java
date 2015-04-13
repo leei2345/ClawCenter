@@ -37,6 +37,8 @@ public class UserCenter {
 		}
 		host = inet.getHostAddress();
 		
+//		host = "127.0.0.1";
+		
 		String updateSql = "update tb_ganji_user set status=0 where status!=2 and hostname='" + host + "'";
 		DataBaseCenter.Dao.exec(updateSql);
 		userMap.clear();
@@ -82,19 +84,21 @@ public class UserCenter {
 		return userMap.size();
 	}
 
-	public static synchronized UserEntity GetNextLoginUser () {
-		loginIndex.addAndGet(1);
-		int index = loginIndex.get();
-		if (index > (loginUserList.size() - 1)) {
-			index = 0;
-			loginIndex = new AtomicInteger(index);
-		}
+	public static UserEntity GetNextLoginUser () {
 		UserEntity u = null;
-		u = loginUserList.get(index);
-		if (u != null) {
-			LoggerUtil.ClawerLog("web_ganji","[==============UserCenter GetLoginUser Done][LoginList Size " + loginUserList.size() + "][============" + u.getName() + "============]");
-		} else {
-			LoggerUtil.ClawerLog("web_ganji","[==============UserCenter GetLoginUser Fail][LoginList Size " + loginUserList.size() + "]");
+		synchronized (loginUserList) {
+			loginIndex.addAndGet(1);
+			int index = loginIndex.get();
+			if (index > (loginUserList.size() - 1)) {
+				index = 0;
+				loginIndex = new AtomicInteger(index);
+			}
+			u = loginUserList.get(index);
+			if (u != null) {
+				LoggerUtil.ClawerLog("web_ganji","[==============UserCenter GetLoginUser Done][LoginList Size " + loginUserList.size() + "][============" + u.getName() + "============]");
+			} else {
+				LoggerUtil.ClawerLog("web_ganji","[==============UserCenter GetLoginUser Fail][LoginList Size " + loginUserList.size() + "]");
+			}
 		}
 		return u;
 	}
@@ -138,15 +142,21 @@ public class UserCenter {
 	}
 	
 	public static synchronized int GetLoginUserListSize () {
-		return loginUserList.size();
+		synchronized (loginUserList) {
+			return loginUserList.size();
+		}
 	}
 	
 	public static synchronized void ClearLoginUserList () {
-		loginUserList.clear();
+		synchronized (loginUserList) {
+			loginUserList.clear();
+		}
 	}
 	
 	public static synchronized void AddLoginUser (UserEntity u) {
-		loginUserList.add(u);
+		synchronized (loginUserList) {
+			loginUserList.add(u);
+		}
 	}
 
 	public static void main(String[] args) {}
