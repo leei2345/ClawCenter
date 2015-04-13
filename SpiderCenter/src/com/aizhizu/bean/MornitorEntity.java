@@ -99,7 +99,7 @@ public class MornitorEntity {
 					sql = "insert into tb_mornitor (hostname,identidy,date,start_time,avg_time,succ_count,fail_count) values ('" + host + "','" + identify + "','" + date + "','" + startTime + "'," + avgTime + "," + succCount + "," + failCount + ")";
 					int count = DataBaseCenter.Dao.exec(sql);
 					if (count > 0) {
-						LoggerUtil.ClawerLog("[Mornitor][" + identify + "][Insert DB][Succ]");
+						LoggerUtil.InfoLog("[Mornitor][" + identify + "][Insert DB][Succ]");
 					}
 				}
 			}

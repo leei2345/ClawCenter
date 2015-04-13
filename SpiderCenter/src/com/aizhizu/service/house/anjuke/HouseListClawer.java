@@ -9,7 +9,7 @@ import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
-import com.aizhizu.dao.Redis;
+import com.aizhizu.dao.HouseSourceCheckAndWrite;
 import com.aizhizu.http.HttpMethod;
 import com.aizhizu.http.HttpResponseConfig;
 import com.aizhizu.service.Analyst;
@@ -69,17 +69,18 @@ public class HouseListClawer extends BaseHouseClawer {
 			doc = Jsoup.parse(html);
 			houseNodes = doc.select("div.main_content > div.content_l > div.plate > dl");
 		}
-		Redis redis = Redis.getInstance();
 		ConcurrentLinkedQueue<String> taskList = taskMap.get(identidy);
 		for (int nodeIndex = 0; nodeIndex < houseNodes.size(); nodeIndex++) {
 			Element houseNode = houseNodes.get(nodeIndex);
 			String houseUrl = houseNode.attr("link").trim();
 			houseUrl = houseUrl.replaceAll("\\?from=.*", "");
-			if ((!redis.hasNewsUrl(houseUrl))	&& (!StringUtils.isBlank(houseUrl))) {
-				taskList.offer(houseUrl);
+			if (!StringUtils.isBlank(houseUrl) && !HouseSourceCheckAndWrite.CheckHouseExsist(houseUrl)) {
+				if (!taskList.contains(houseUrl)) {
+					taskList.offer(houseUrl);
+				}
 			}
 		}
-		LoggerUtil.ClawerLog("[" + identidy + "][list][" + Progress() + "][page " + this.pageIndex + "][tasklist " + taskList.size() + "]");
+		LoggerUtil.ClawerLog(identidy, "[" + identidy + "][list][" + Progress() + "][page " + this.pageIndex + "][tasklist " + taskList.size() + "]");
 		this.analystResult.put(Analyst.Info, "succ");
 		return this.analystResult;
 	}

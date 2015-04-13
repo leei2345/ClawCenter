@@ -80,10 +80,10 @@ public class ImageOcr {
 				imageFile.delete();
 			}
 			if (valCode.matches("\\d{4}")) {
-				LoggerUtil.ClawerLog("[OCR Image Analyst By " + retryIndex + " Times Success][" + url + "]");
+				LoggerUtil.ClawerLog(identidy,"[OCR Image Analyst By " + retryIndex + " Times Success][" + url + "]");
 				break;
 			} else {
-				LoggerUtil.ClawerLog("[OCR Image Analyst By " + retryIndex + " Times Fail][" + url + "]");
+				LoggerUtil.ClawerLog(identidy,"[OCR Image Analyst By " + retryIndex + " Times Fail][" + url + "]");
 				continue;
 			}
 		}

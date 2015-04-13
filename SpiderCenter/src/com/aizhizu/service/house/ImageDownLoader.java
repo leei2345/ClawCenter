@@ -60,7 +60,7 @@ public class ImageDownLoader implements Runnable {
 				imageOut = new FileOutputStream(new File(imageFilePathName));
 				imageOut.write(imageArr[0]);
 				imageOut.flush();
-				LoggerUtil.ClawerLog("[" + this.sourceUrl + "][" + imageIndex + " / " + size + "][image download succ]");
+				LoggerUtil.ClawerLog(this.identidy, "[" + this.sourceUrl + "][" + imageIndex + " / " + size + "][image download succ]");
 			} catch (FileNotFoundException e) {
 				e.printStackTrace();
 			} catch (IOException e) {

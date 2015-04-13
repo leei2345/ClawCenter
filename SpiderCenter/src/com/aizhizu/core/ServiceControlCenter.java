@@ -112,7 +112,7 @@ public class ServiceControlCenter {
 			BaseHandler clawer = (BaseHandler) instance;
 			service.scheduleAtFixedRate(clawer, delayTime, intervalTime,TimeUnit.MILLISECONDS);
 			scheduledMap.put(handleName, service);
-			LoggerUtil.ClawerLog("[" + handleName + "][" + printRuntime(delayTime) + "后开始运行][间隔 " + printRuntime(intervalTime) + "][scheduledBoxSize " + scheduledMap.size() + "]");
+			LoggerUtil.InfoLog("[" + handleName + "][" + printRuntime(delayTime) + "后开始运行][间隔 " + printRuntime(intervalTime) + "][scheduledBoxSize " + scheduledMap.size() + "]");
 			ChangeScheduledStatus(handleName, 0);
 		} catch (ClassNotFoundException e) {
 			e.printStackTrace();
@@ -141,7 +141,7 @@ public class ServiceControlCenter {
 		scheduledMap.put(handleName, service);
 		String sql = "update tb_scheduled_conf set status=2 where identidy='"	+ handleName + "'";
 		DataBaseCenter.Dao.exec(sql);
-		LoggerUtil.ClawerLog("[" + handleName + "][停止运行]");
+		LoggerUtil.InfoLog("[" + handleName + "][停止运行]");
 	}
 
 	protected static synchronized long getDelayTime(String[] runtimeArr) {

@@ -28,7 +28,7 @@ public abstract class BaseHandler implements Runnable {
 			StartHandle();
 		} catch (Exception e) {
 			e.printStackTrace();
-			LoggerUtil.ClawerLog("[Handle error][" + e.getMessage() + "]");
+			LoggerUtil.InfoLog("[Handle error][" + e.getMessage() + "]");
 		}
 		/** 修改数据库状态为休息中 */
 		ChangeScheduledStatus(0);

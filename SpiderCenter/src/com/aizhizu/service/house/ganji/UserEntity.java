@@ -112,8 +112,9 @@ public class UserEntity {
 		this.index = index;
 	}
 
-	public void Login () {
-		LoggerUtil.ClawerLog("[Login][" + name + "][" + useCount.get() + "][Step 1][Get User][Done]");
+	public boolean Login () {
+		boolean res = false;
+		LoggerUtil.ClawerLog("web_ganji","[Login][" + name + "][" + useCount.get() + "][Step 1][Get User][Done]");
 		HttpMethod method = new HttpMethod("web_ganji");
 		method.AddHeader(Method.Get, "Host", "passport.ganji.com");
 		method.AddHeader(Method.Get, "User-Agent", "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:35.0) Gecko/20100101 Firefox/35.0");
@@ -138,10 +139,10 @@ public class UserEntity {
 			} catch (Exception e) {
 				e.printStackTrace();
 				UserCenter.SetUserStatusInactive(this, UserStat.Normal);
-				LoggerUtil.ClawerLog("[Login][" + name + "][" + useCount.get() + "][Step 2][Get HashCode][Fail]");
-				return;
+				LoggerUtil.ClawerLog("web_ganji","[Login][" + name + "][" + useCount.get() + "][Step 2][Get HashCode][Fail]");
+				return false;
 			}
-			LoggerUtil.ClawerLog("[Login][" + name + "][" + useCount.get() + "][Step 2][Get HashCode][Done]");
+			LoggerUtil.ClawerLog("web_ganji","[Login][" + name + "][" + useCount.get() + "][Step 2][Get HashCode][Done]");
 			if (!StringUtils.isBlank(hash)) {
 				try {
 					Thread.sleep(1000);
@@ -160,18 +161,20 @@ public class UserEntity {
 					JSONObject firstHtmlObject = JSONObject.parseObject(firstGetHtml);
 					int user_id = firstHtmlObject.getIntValue("user_id");
 					if (user_id < 1) {
-						LoggerUtil.ClawerLog("[Login][" + name + "][" + useCount.get() + "][Step 3][User Login][Fail]");
+						LoggerUtil.ClawerLog("web_ganji","[Login][" + name + "][" + useCount.get() + "][Step 3][User Login][Fail]");
 					} else {
 						cookie = step2Me.getCookieStore();
-						LoggerUtil.ClawerLog("[Login][" + name + "][" + useCount.get() + "][Step 3][User Login][Done]");
+						res = true;
+						LoggerUtil.ClawerLog("web_ganji","[Login][" + name + "][" + useCount.get() + "][Step 3][User Login][Done]");
 					}
 				} catch (Exception e) {
-					LoggerUtil.ClawerLog("[Login][" + name + "][" + useCount.get() + "][Step 3][User Login][Error]");
+					LoggerUtil.ClawerLog("web_ganji","[Login][" + name + "][" + useCount.get() + "][Step 3][User Login][Error]");
 					UserCenter.SetUserStatusInactive(this, UserStat.Normal);
-					return;
+					return false;
 				}
 			}
 		}
+		return res;
 	}
 	
 }

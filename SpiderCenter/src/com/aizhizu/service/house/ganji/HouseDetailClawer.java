@@ -50,7 +50,7 @@ public class HouseDetailClawer extends BaseHouseDetailHandler {
 		try {
 			Implement();
 		} catch (Exception e) {
-			LoggerUtil.ClawerLog("[" + identidy + "][got house detail fail][" + e.getMessage() + "]");
+			LoggerUtil.ClawerLog(identidy, "[" + identidy + "][got house detail fail][" + e.getMessage() + "]");
 			return;
 		}
 		HouseChuzuEntity entity = (HouseChuzuEntity) this.getEntity();
@@ -145,7 +145,7 @@ public class HouseDetailClawer extends BaseHouseDetailHandler {
 		String phonePart = doc.select("div.basic-info-contact > div#contact-phone > span#s_part_phone > em.contact-mobile").text().trim();
 		String phoneNum = "";
 		boolean phoneStatus = false;
-		UserEntity user = UserCenter.GetNextUser();
+		UserEntity user = UserCenter.GetNextLoginUser();
 		if (user == null) {
 			this.analystResult.put(Analyst.Info, "user null");
 			this.analystResult.put(Analyst.FailCount, Integer.valueOf(1));

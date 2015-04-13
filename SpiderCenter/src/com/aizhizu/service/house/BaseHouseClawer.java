@@ -16,14 +16,19 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.FastDateFormat;
 import org.apache.commons.lang3.time.StopWatch;
 
 import com.aizhizu.bean.FileWriterEntity;
 import com.aizhizu.bean.MornitorEntity;
 import com.aizhizu.service.BaseClawer;
+import com.aizhizu.service.house.ganji.LoginScheduled;
+import com.aizhizu.service.house.ganji.UserCenter;
 import com.aizhizu.util.ConfigUtil;
 import com.aizhizu.util.CountDownLatchUtils;
 import com.aizhizu.util.LoggerUtil;
@@ -66,17 +71,24 @@ public abstract class BaseHouseClawer extends BaseClawer {
 
 	@SuppressWarnings({ "rawtypes", "unchecked" })
 	public void run() {
+		/** 赶集登陆定时器 */
+		ScheduledExecutorService service = null;
+		if (StringUtils.equals(this.identidy, "web_ganji")) {
+			service = Executors.newSingleThreadScheduledExecutor();
+			LoginScheduled login = new LoginScheduled();
+			service.scheduleAtFixedRate(login, 10000, 60000, TimeUnit.MILLISECONDS);
+		}
 		try {
 			Implement();
 		} catch (Exception e) {
-			LoggerUtil.ClawerLog("[" + this.identidy + "][got house list fail][" + e.getMessage() + "]");
+			LoggerUtil.ClawerLog(identidy, "[" + this.identidy + "][got house list fail][" + e.getMessage() + "]");
 			return;
 		}
 		ConcurrentLinkedQueue<String> taskList = taskMap.get(this.identidy);
 		int taskSize = taskList.size();
 		threadCount = threadPoolConf.get(this.identidy)[1];
 		ExecutorService threadPool = Executors.newFixedThreadPool(threadCount);
-		LoggerUtil.ClawerLog("[" + this.identidy + "][got house list succ][task size " + taskSize + "]");
+		LoggerUtil.ClawerLog(this.identidy, "[" + this.identidy + "][got house list succ][task size " + taskSize + "]");
 		CountDownLatchUtils cdl = new CountDownLatchUtils(taskSize);
 		MornitorEntity mornitor = new MornitorEntity(identidy);
 		String classLoaderPath = getClass().getClassLoader().getResource("").getPath();
@@ -153,6 +165,11 @@ public abstract class BaseHouseClawer extends BaseClawer {
 			threadPool.shutdownNow();
 			threadPool = null;
 			mornitor.MakeDB();
+			if (StringUtils.equals(this.identidy, "web_ganji")) {
+				service.shutdownNow();
+				service = null;
+				UserCenter.ClearLoginUserList();
+			}
 		}  catch (Exception e) {
 			e.printStackTrace();
 		} finally {

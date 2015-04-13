@@ -39,7 +39,7 @@ public class HouseDetailClawer extends BaseHouseDetailHandler {
 		try {
 			Implement();
 		} catch (Exception e) {
-			LoggerUtil.ClawerLog("[" + identidy + "][got house detail fail][" + e.getMessage() + "]");
+			LoggerUtil.ClawerLog(identidy, "[" + identidy + "][got house detail fail][" + e.getMessage() + "]");
 			return;
 		}
 		HouseChuzuEntity entity = (HouseChuzuEntity) this.getEntity();

@@ -9,6 +9,7 @@ import org.apache.commons.lang3.StringUtils;
 
 import com.aizhizu.bean.BaseHouseEntity;
 import com.aizhizu.bean.FileWriterEntity;
+import com.aizhizu.dao.HouseSourceCheckAndWrite;
 import com.aizhizu.util.LoggerUtil;
 
 
@@ -25,7 +26,6 @@ public abstract class BaseHouseDetailHandler extends BaseHouseClawer {
 		this.fileWriter = writer;
 	}
 
-
 	public void setLineNum(int lineNum) {
 		this.lineNum = lineNum;
 	}
@@ -39,9 +39,13 @@ public abstract class BaseHouseDetailHandler extends BaseHouseClawer {
 		if (phoneNum.contains("**") || StringUtils.isBlank(phoneNum) || !phoneNum.matches("\\d{11}")) {
 			return false;
 		} else {
-			redis.pushNewsUrl(url);
-			String identidy = house.getLineName();
-			LoggerUtil.ClawerLog("[Redis][Add][" + identidy + "][" + url + "]");
+			/** 记录数据库 */
+			try {
+				HouseSourceCheckAndWrite.InsertClawHistory(url, identidy, this.fileWriter.getDate());
+				LoggerUtil.ClawerLog(identidy, "[HouseHistory][Add Done][" + identidy + "][" + url + "]");
+			} catch (Exception e) {
+				LoggerUtil.ClawerLog(identidy, "[HouseHistory][Add Error][" + identidy + "][" + url + "]");
+			}
 		}
 		String filePath = this.fileWriter.getFilePath();
 		File imageFileDir = new File(filePath + "/" + lineNum);
@@ -83,7 +87,6 @@ public abstract class BaseHouseDetailHandler extends BaseHouseClawer {
 		new Thread(pusher).start();
 		DataPusher pusher_back = new DataPusher(house, baseUrl);
 		new Thread(pusher_back).start();
-			
 		return res;
 	}
 

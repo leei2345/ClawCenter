@@ -1,8 +1,10 @@
 package com.aizhizu.service.house.ganji;
 
 import java.net.InetAddress;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -15,16 +17,18 @@ import com.aizhizu.util.LoggerUtil;
 
 public class UserCenter {
 	
+	private static AtomicInteger loginIndex = new AtomicInteger(0);
 	private static AtomicInteger userIndex = new AtomicInteger(0);
 	private static FastDateFormat sim = FastDateFormat.getInstance("yyyy-MM-dd HH:mm:ss");
 	private static Map<Integer, UserEntity> userMap = new HashMap<Integer, UserEntity>();
+	private static List<UserEntity> loginUserList = new ArrayList<UserEntity>();
 	private static String host;
 	
 	static {
-		ResetStat(1);
+		ResetUserMap();
 	}
-
-	public static void ResetStat (int code) {
+	
+	public static void ResetUserMap () {
 		InetAddress inet = null;
 		try {
 			inet = InetAddress.getLocalHost();
@@ -33,15 +37,8 @@ public class UserCenter {
 		}
 		host = inet.getHostAddress();
 		
-//		host = "10.172.252.245";
-		
-		if (code == 0) {
-			String updateSql = "update tb_ganji_user set status=0 where status!=2 and hostname='" + host + "'";
-			DataBaseCenter.Dao.exec(updateSql);
-		} else {
-			String updateSql = "update tb_ganji_user set status=0 where status!=2 and status!=1 and hostname='" + host + "'";
-			DataBaseCenter.Dao.exec(updateSql);
-		}
+		String updateSql = "update tb_ganji_user set status=0 where status!=2 and hostname='" + host + "'";
+		DataBaseCenter.Dao.exec(updateSql);
 		userMap.clear();
 		String sql = "select name,passwd,status,update_time from tb_ganji_user where hostname='" + host + "'";
 		Ls ls = DataBaseCenter.Dao.ls(sql, 0, 0);
@@ -77,63 +74,81 @@ public class UserCenter {
 			}
 			userMap.put(index, u);
 		}
-		LoggerUtil.ClawerLog("[==============UserCenter Init done==============][UserList Size " + userMap.size() + "]");
+		LoggerUtil.ClawerLog("web_ganji", "[==============UserCenter Init done==============][UserList Size " + userMap.size() + "]");
+	
 	}
 
-	
 	public static int GetUserCount () {
 		return userMap.size();
 	}
 
-	public static synchronized UserEntity GetNextUser () {
-		int index = userIndex.get();
-		if (index > (userMap.size() - 1)) {
+	public static synchronized UserEntity GetNextLoginUser () {
+		loginIndex.addAndGet(1);
+		int index = loginIndex.get();
+		if (index > (loginUserList.size() - 1)) {
 			index = 0;
-			userIndex = new AtomicInteger(index);
-			ResetStat(0);
+			loginIndex = new AtomicInteger(index);
 		}
 		UserEntity u = null;
-		for (; index < userMap.size();) {
-			u = userMap.get(index);
-			int count = u.getCount();
-			UserStat s = u.getStat();
-			if (count >= 10 || (!s.equals(UserStat.Normal) && !s.equals(UserStat.OnUse))) {
-				index++;
-				userIndex = new AtomicInteger(index);
-				continue;
-			}
-			u.addCount(1);
-			u.setStatOnUse(1);
-			userMap.put(index, u);
-			break;
-		}
+		u = loginUserList.get(index);
 		if (u != null) {
-			LoggerUtil.ClawerLog("[==============UserCenter Update OnUse Done][============" + u.getName() + "============]");
+			LoggerUtil.ClawerLog("web_ganji","[==============UserCenter GetLoginUser Done][LoginList Size " + loginUserList.size() + "][============" + u.getName() + "============]");
+		} else {
+			LoggerUtil.ClawerLog("web_ganji","[==============UserCenter GetLoginUser Fail][LoginList Size " + loginUserList.size() + "]");
 		}
 		return u;
 	}
 	
+	public static synchronized UserEntity GetNextUser () {
+		userIndex.addAndGet(1);
+		int index = userIndex.get();
+		if (index > (userMap.size() - 1)) {
+			index = 0;
+			userIndex = new AtomicInteger(index);
+			ResetUserMap();
+		}
+		UserEntity u = null;
+		u = userMap.get(index);
+		if (u != null) {
+			LoggerUtil.ClawerLog("web_ganji","[==============UserCenter GetUser Done][============" + u.getName() + "============]");
+		}
+		return u;
+	}
+	
+	
 	public static void SetUserStatusInactive (UserEntity user, UserStat stat) {
 		String name = user.getName();
-		user.setStatNotOnUse(stat);
 		int index = user.getIndex();
 		if (!stat.equals(UserStat.Normal)) {
-			user.setCookie(null);
+			synchronized (loginUserList) {
+				loginUserList.remove(user);
+			}
 		}
+		user.setStatNotOnUse(stat);
 		int statusCode = stat.getStatusCode();
 		String sql = "update tb_ganji_user  set status=" + statusCode + ",update_time=now() where name='" + name + "'";
 		DataBaseCenter.Dao.exec(sql);
 		user.setUpdateTime(sim.format(new Date()));
 		userMap.put(index, user);
-		LoggerUtil.ClawerLog("[============UserCenter Update UserStat " + stat.getStatus() + " Done============][============" + name + "============]");
+		LoggerUtil.ClawerLog("web_ganji","[============UserCenter Update UserStat " + stat.getStatus() + " Done============][============" + name + "============]");
 	}
 	
 	public static Map<Integer, UserEntity> getUserMap() {
 		return userMap;
 	}
-
-	public static void main(String[] args) {
-		UserCenter.ResetStat(0);
+	
+	public static synchronized int GetLoginUserListSize () {
+		return loginUserList.size();
 	}
+	
+	public static synchronized void ClearLoginUserList () {
+		loginUserList.clear();
+	}
+	
+	public static synchronized void AddLoginUser (UserEntity u) {
+		loginUserList.add(u);
+	}
+
+	public static void main(String[] args) {}
 	
 }

@@ -46,7 +46,7 @@ public abstract class BaseClawer implements Runnable {
 	static {
 		redis = Redis.getInstance();
 		redis.refreshPlotMap();
-		LoggerUtil.ClawerLog("init plot data from redis!");
+		LoggerUtil.InfoLog("init plot data from redis!");
 	}
 
 	public void setMornitor(MornitorEntity mornitor) {
@@ -111,21 +111,21 @@ public abstract class BaseClawer implements Runnable {
 				
 				this.mornitor.AddTime(usedTime);
 			} else {
-				LoggerUtil.ClawerLog("[" + this.identidy + "]" + "[请注入Mornitor]");
+				LoggerUtil.ClawerLog(this.identidy , "[" + this.identidy + "]" + "[请注入Mornitor]");
 			}
 			if ((this.box == null) || (this.box.size() == 0)) {
 				this.box = new Vector<String>();
 				this.box.add("work");
 			}
-			LoggerUtil.ClawerLog("[" + this.identidy + "][" + Progress() + "][" + info + "][" + (String) this.box.get(0) + "]");
+			LoggerUtil.ClawerLog(this.identidy, "[" + this.identidy + "][" + Progress() + "][" + info + "][" + (String) this.box.get(0) + "]");
 		} catch (JSONException je) {
 			je.printStackTrace();
 			result = false;
-			LoggerUtil.ClawerLog("[" + this.identidy + "][" + Progress() + "][fail][" + (String) this.box.get(0) + "]");
+			LoggerUtil.ClawerLog(this.identidy, "[" + this.identidy + "][" + Progress() + "][fail][" + (String) this.box.get(0) + "]");
 		} catch (Exception e) {
 			e.printStackTrace();
 			result = false;
-			LoggerUtil.ClawerLog("[" + this.identidy + "][" + Progress() + "][fail][" + (String) this.box.get(0) + "]");
+			LoggerUtil.ClawerLog(this.identidy, "[" + this.identidy + "][" + Progress() + "][fail][" + (String) this.box.get(0) + "]");
 		}
 		this.cdl.countDown();
 		return result;

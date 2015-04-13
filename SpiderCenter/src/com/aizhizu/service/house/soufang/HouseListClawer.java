@@ -9,7 +9,7 @@ import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
-import com.aizhizu.dao.Redis;
+import com.aizhizu.dao.HouseSourceCheckAndWrite;
 import com.aizhizu.http.HttpMethod;
 import com.aizhizu.http.HttpResponseConfig;
 import com.aizhizu.http.Method;
@@ -66,7 +66,7 @@ public class HouseListClawer extends BaseHouseClawer {
 
 	protected Map<Analyst, Object> Analysis(String html) {
 		if (StringUtils.isBlank(html)) {
-			this.analystResult.put(Analyst.Info, "PageNo" + pageIndex + " fial");
+			this.analystResult.put(Analyst.Info, "PageNo" + pageIndex + " fail");
 			return this.analystResult;
 		}
 		Document doc = Jsoup.parse(html, "http://zu.fang.com/house/");
@@ -78,16 +78,17 @@ public class HouseListClawer extends BaseHouseClawer {
 			houseNodes = doc
 					.select("div.houseList > dl");
 		}
-		Redis redis = Redis.getInstance();
 		ConcurrentLinkedQueue<String> taskList = taskMap.get(identidy);
 		for (int nodeIndex = 0; nodeIndex < houseNodes.size(); nodeIndex++) {
 			Element houseNode = houseNodes.get(nodeIndex);
 			String houseUrl = houseNode.select("dt[class=img rel floatl] > a").attr("abs:href").trim();
-			if ((!redis.hasNewsUrl(houseUrl))	&& (!StringUtils.isBlank(houseUrl))) {
-				taskList.offer(houseUrl);
+			if (!StringUtils.isBlank(houseUrl) && !HouseSourceCheckAndWrite.CheckHouseExsist(houseUrl)) {
+				if (!taskList.contains(houseUrl)) {
+					taskList.offer(houseUrl);
+				}
 			}
 		}
-		LoggerUtil.ClawerLog("[" + identidy + "][list][" + Progress() + "][page " + this.pageIndex + "][tasklist " + taskList.size() + "]");
+		LoggerUtil.ClawerLog(identidy, "[" + identidy + "][list][" + Progress() + "][page " + this.pageIndex + "][tasklist " + taskList.size() + "]");
 		this.analystResult.put(Analyst.Info, "succ");
 		return this.analystResult;
 	}

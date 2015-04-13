@@ -2,6 +2,7 @@ package com.aizhizu.dao;
 
 import java.util.Set;
 
+
 import org.jdiy.core.Ls;
 import org.jdiy.core.Rs;
 
@@ -12,11 +13,12 @@ import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
 import redis.clients.jedis.JedisPoolConfig;
 
+@SuppressWarnings("unused")
 public class Redis {
 	private JedisPool jedisPool;
 
 	private Redis() {
-		LoggerUtil.ClawerLog("Redis Initializing from config.properties.......");
+		LoggerUtil.InfoLog("Redis Initializing from config.properties.......");
 //		ResourceBundle config = ResourceBundle.getBundle("data");
 		JedisPoolConfig jedisPoolConfig = new JedisPoolConfig();
 		jedisPoolConfig.setMaxActive(Integer.valueOf(
@@ -40,7 +42,7 @@ public class Redis {
 		return RedisContainer.instance;
 	}
 
-	public boolean hasNewsUrl(String url) {
+	private boolean hasNewsUrl(String url) {
 		Jedis jedis = (Jedis) this.jedisPool.getResource();
 		String result = jedis.hget("house_url", url);
 		this.jedisPool.returnResource(jedis);
@@ -48,7 +50,7 @@ public class Redis {
 		return (result != null) && (!result.isEmpty());
 	}
 
-	public void pushNewsUrl(String url) {
+	private void pushNewsUrl(String url) {
 		Jedis jedis = (Jedis) this.jedisPool.getResource();
 		jedis.hset("house_url", url, "1");
 		this.jedisPool.returnResource(jedis);
@@ -77,7 +79,7 @@ public class Redis {
 		return result == null ? "" : result;
 	}
 
-	public void test() {
+	private void test() {
 		Jedis jedis = (Jedis) this.jedisPool.getResource();
 		jedis.sadd("myset", new String[] { "1" });
 		jedis.sadd("myset", new String[] { "2" });
@@ -92,7 +94,7 @@ public class Redis {
 		private static Redis instance = new Redis();
 	}
 	
-	public static void main(String[] args) {
+	private static void main(String[] args) {
 		Redis r = getInstance();
 		r.test();
 	}
