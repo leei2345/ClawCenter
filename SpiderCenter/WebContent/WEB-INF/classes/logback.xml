@@ -95,13 +95,13 @@
 	
 	
     <logger name="GanLogger" level="INFO" additivity="false">
-    	<appender-ref ref="Gan_Log" />
+    	<appender-ref ref="Gan_log" />
     </logger>
     <logger name="WuLogger" level="INFO" additivity="false">
-    	<appender-ref ref="Wu_Log" />
+    	<appender-ref ref="Wu_log" />
     </logger>
     <logger name="SouLogger" level="INFO" additivity="false">
-    	<appender-ref ref="Sou_Log" />
+    	<appender-ref ref="Sou_log" />
     </logger>
     <logger name="AnLogger" level="INFO" additivity="false">
     	<appender-ref ref="An_log" />
