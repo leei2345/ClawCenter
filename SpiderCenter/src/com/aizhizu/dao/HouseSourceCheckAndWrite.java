@@ -16,7 +16,7 @@ public class HouseSourceCheckAndWrite {
 	}
 	
 	public static void InsertClawHistory (String url, String source, String path) {
-		String sql = "insert tb_claw_history into (url, source, path, update_time) values ('" + url + "','" + source + "','" + path + "',now())";
+		String sql = "insert into tb_claw_history (url, source, path, update_time) values ('" + url + "','" + source + "','" + path + "',now())";
 		try {
 			DataBaseCenter.Dao.exec(sql);
 		} catch (Exception e) {
